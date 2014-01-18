@@ -1,1 +1,1 @@
-int interpretBlock( char * );
+extern int interpretBlock( char * );

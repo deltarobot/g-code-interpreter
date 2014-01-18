@@ -31,7 +31,7 @@ $(call testexe,$1): $(call test,$1) $(call code,$1) $(call incl,$($1_incl)) $(ca
 endef
 
 all: $(call targ,$(objects)) $(call testexe,$(objects_no_main)) $(call lib,$(all_libs))
-	$(cc) target/driver $(call targ,$(objects)) $(call lib,$(all_libs))
+	$(cc) target/g-code-interpreter $(call targ,$(objects)) $(call lib,$(all_libs))
 
 $(foreach object,$(objects),$(eval $(call make_object,$(object))))
 
