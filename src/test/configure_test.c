@@ -27,13 +27,13 @@ static void configureString( CuTest *tc, char *properties, int success ) {
 }
 
 static void configureMmTest( CuTest *tc ) {
-    configureString( tc, "step.ratio=1.03452\n", 1 );
-    CuAssert( tc, "Didn't set the stepRatio correctly.", stepRatio == 1.03452 );
+    configureString( tc, "step.ratio.mm=1.02342\n", 1 );
+    CuAssert( tc, "Didn't set the stepRatio correctly.", stepRatio == 1.02342 );
 }
 
 static void configureInchTest( CuTest *tc ) {
-    configureString( tc, "step.ratio=1.03452\n", 1 );
-    CuAssert( tc, "Didn't set the stepRatio correctly.", stepRatio == 1.03452 );
+    configureString( tc, "step.ratio.inch=0.0032\n", 1 );
+    CuAssert( tc, "Didn't set the stepRatio correctly.", stepRatio == 0.08128 );
 }
 
 static void configureCommentsTest( CuTest *tc ) {
@@ -42,6 +42,7 @@ static void configureCommentsTest( CuTest *tc ) {
 
 static void configureBadPropertyTest( CuTest *tc ) {
     configureString( tc, "unknown.property\n", 0 );
+    configureString( tc, "step.ratio.mm=-0.345\n", 0 );
 }
 
 CuSuite* CuGetSuite( void ) {

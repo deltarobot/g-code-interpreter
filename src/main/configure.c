@@ -14,6 +14,8 @@ union ReturnValue {
 typedef enum ReturnType ReturnType;
 typedef union ReturnValue ReturnValue;
 
+#define convertToMm(x) x * 25.4
+
 double stepRatio;
 
 static int processLine( char *line );
@@ -37,12 +39,19 @@ static int processLine( char *line ) {
 
     if( line[0] == '#' ) {
 
-    } else if( readProperty( "step.ratio=", line, Double, &returnValue ) ) {
+    } else if( readProperty( "step.ratio.mm=", line, Double, &returnValue ) ) {
         if( returnValue.doubleReturn <= 0 ) {
             fprintf( stderr, "step.ratio must be strictly positive.\n" );
             return 0;
         } else {
             stepRatio = returnValue.doubleReturn;
+        }
+    } else if( readProperty( "step.ratio.inch=", line, Double, &returnValue ) ) {
+        if( returnValue.doubleReturn <= 0 ) {
+            fprintf( stderr, "step.ratio must be strictly positive.\n" );
+            return 0;
+        } else {
+            stepRatio = convertToMm( returnValue.doubleReturn );
         }
     } else {
         fprintf( stderr, "Unknown configuration line: %s", line );
@@ -66,3 +75,4 @@ static int readProperty( char *propertyName, char *line, ReturnType returnType, 
         return 0;
     }
 }
+
