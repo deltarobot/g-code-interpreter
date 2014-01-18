@@ -5,6 +5,8 @@
 static void configureString( CuTest *tc, char *properties, int success );
 static void configureMmTest( CuTest *tc );
 static void configureInchTest( CuTest *tc );
+static void configureAccelerationTest( CuTest *tc );
+static void configureSpeedTest( CuTest *tc );
 static void configureCommentsTest( CuTest *tc );
 static void configureBadPropertyTest( CuTest *tc );
 
@@ -36,6 +38,16 @@ static void configureInchTest( CuTest *tc ) {
     CuAssert( tc, "Didn't set the stepRatio correctly.", stepRatio == 0.08128 );
 }
 
+static void configureAccelerationTest( CuTest *tc ) {
+    configureString( tc, "acceleration.max=500\n", 1 );
+    CuAssert( tc, "Didn't set the accelerationMax correctly.", accelerationMax == 500 );
+}
+
+static void configureSpeedTest( CuTest *tc ) {
+    configureString( tc, "speed.max=10000", 1 );
+    CuAssert( tc, "Didn't set the speedMax correctly.", speedMax == 10000 );
+}
+
 static void configureCommentsTest( CuTest *tc ) {
     configureString( tc, "#Some comment\n#Another Comment\n", 1 );
 }
@@ -50,6 +62,8 @@ CuSuite* CuGetSuite( void ) {
 
     SUITE_ADD_TEST( suite, configureMmTest );
     SUITE_ADD_TEST( suite, configureInchTest );
+    SUITE_ADD_TEST( suite, configureAccelerationTest );
+    SUITE_ADD_TEST( suite, configureSpeedTest );
     SUITE_ADD_TEST( suite, configureCommentsTest );
     SUITE_ADD_TEST( suite, configureBadPropertyTest );
 
