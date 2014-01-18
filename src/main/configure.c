@@ -31,6 +31,7 @@ int configure( FILE *file ) {
         }
     }
 
+    free( line );
     return 1;
 }
 
@@ -41,20 +42,20 @@ static int processLine( char *line ) {
 
     } else if( readProperty( "step.ratio.mm=", line, Double, &returnValue ) ) {
         if( returnValue.doubleReturn <= 0 ) {
-            fprintf( stderr, "step.ratio must be strictly positive.\n" );
+            fprintf( stderr, "ERROR: step.ratio must be strictly positive.\n" );
             return 0;
         } else {
             stepRatio = returnValue.doubleReturn;
         }
     } else if( readProperty( "step.ratio.inch=", line, Double, &returnValue ) ) {
         if( returnValue.doubleReturn <= 0 ) {
-            fprintf( stderr, "step.ratio must be strictly positive.\n" );
+            fprintf( stderr, "ERROR: step.ratio must be strictly positive.\n" );
             return 0;
         } else {
             stepRatio = convertToMm( returnValue.doubleReturn );
         }
     } else {
-        fprintf( stderr, "Unknown configuration line: %s", line );
+        fprintf( stderr, "ERROR: Unknown configuration line: %s", line );
         return 0;
     }
     return 1;
