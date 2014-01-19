@@ -16,9 +16,10 @@ union ReturnValue {
 typedef enum ReturnType ReturnType;
 typedef union ReturnValue ReturnValue;
 
-double stepRatio;
-int accelerationMax;
-int speedMax;
+double stepRatio = 1.0;
+int accelerationMax = 1;
+int speedMax = 1;
+int inchMeasurements = 0;
 
 static int processLine( char *line );
 static int readProperty( char *propertyName, char *line, ReturnType returnType, ReturnValue *returnValue );
@@ -77,6 +78,15 @@ static int processLine( char *line ) {
             return 0;
         } else {
             speedMax = returnValue.intReturn;
+        }
+    } else if( readProperty( "measurement.inch=", line, Int, &returnValue ) ) {
+        if( returnValue.intReturn == 0 ) {
+            inchMeasurements = 0;
+        } else if( returnValue.intReturn == 1 ) {
+            inchMeasurements = 1;
+        } else {
+            fprintf( stderr, "ERROR: measurement.inch must be \"0\" or \"1\".\n" );
+            return 0;
         }
     } else {
         fprintf( stderr, "ERROR: Unknown configuration line: %s", line );

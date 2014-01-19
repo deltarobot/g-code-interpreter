@@ -20,7 +20,7 @@ int main( int argc, char *argv[] ) {
     }
 
     free( block );
-    return 0;
+    exit( EXIT_SUCCESS );
 }
 
 static int startupAndConfigure( int argc, char *argv[] ) {
