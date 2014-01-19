@@ -6,20 +6,24 @@
 static int startupAndConfigure( int argc, char *argv[] );
 
 int main( int argc, char *argv[] ) {
-    char *block = NULL;
+    char *line = NULL;
     size_t size = 0;
 
     if( !startupAndConfigure( argc, argv ) ) {
         exit( EXIT_FAILURE );
     }
 
-    while( getline( &block, &size, stdin ) != -1 ) {
-        if( !interpretBlock( block ) ) {
+    if( !initializeMachine() ) {
+        exit( EXIT_FAILURE );
+    }
+
+    while( getline( &line, &size, stdin ) != -1 ) {
+        if( !processBlock( line ) ) {
             exit( EXIT_FAILURE );
         }
     }
 
-    free( block );
+    free( line );
     exit( EXIT_SUCCESS );
 }
 
