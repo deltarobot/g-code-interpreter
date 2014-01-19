@@ -16,8 +16,6 @@ union ReturnValue {
 typedef enum ReturnType ReturnType;
 typedef union ReturnValue ReturnValue;
 
-#define convertToMm(x) x * 25.4
-
 double stepRatio;
 int accelerationMax;
 int speedMax;
@@ -25,16 +23,24 @@ int speedMax;
 static int processLine( char *line );
 static int readProperty( char *propertyName, char *line, ReturnType returnType, ReturnValue *returnValue );
 
-int configure( FILE *file ) {
+int configure( char *filename ) {
+    FILE *configFile;
     char *line = NULL;
     size_t size = 0;
 
-    while( getline( &line, &size, file ) != -1 ) {
+    configFile = fopen( filename, "r" );
+    if( configFile == NULL ) {
+        fprintf( stderr, "ERROR: could not open file \"%s\".\n", filename );
+        return 0;
+    }
+
+    while( getline( &line, &size, configFile ) != -1 ) {
         if( !processLine( line ) ) {
             return 0;
         }
     }
 
+    fclose( configFile );
     free( line );
     return 1;
 }
@@ -43,7 +49,7 @@ static int processLine( char *line ) {
     ReturnValue returnValue;
 
     if( line[0] == '#' ) {
-
+        /* This line of the properties file is a comment, ignore it. */
     } else if( readProperty( "step.ratio.mm=", line, Double, &returnValue ) ) {
         if( returnValue.doubleReturn <= 0 ) {
             fprintf( stderr, "ERROR: step.ratio must be strictly positive.\n" );

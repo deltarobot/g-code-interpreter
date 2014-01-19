@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include "configure.c"
 #include "CuTest.h"
 
@@ -11,21 +10,17 @@ static void configureCommentsTest( CuTest *tc );
 static void configureBadPropertyTest( CuTest *tc );
 
 static void configureString( CuTest *tc, char *properties, int success ) {
-    int fd[2];
-    FILE *readFile, *writeFile;
+    char *filename = "temp.properties";
+    FILE *file = NULL;
 
-    CuAssert( tc, "Couldn't make pipe.", pipe( fd ) == 0 );
-    writeFile = fdopen( fd[1], "w" );
-    CuAssert( tc, "Didn't open write file.", writeFile != NULL );
-    readFile = fdopen( fd[0], "r" );
-    CuAssert( tc, "Didn't open read file.", readFile != NULL );
+    file = fopen( filename, "w" );
+    CuAssert( tc, "Didn't open the temp file.", file != NULL );
+    fprintf( file, properties );
+    fclose( file );
 
-    fprintf( writeFile, properties );
-    fclose( writeFile );
+    CuAssert( tc, "Configure failed.", configure( filename ) == success );
 
-    CuAssert( tc, "Configure failed.", configure( readFile ) == success );
-
-    fclose( readFile );
+    CuAssert( tc, "Didn't delete file successfully.", remove( filename ) != -1 );
 }
 
 static void configureMmTest( CuTest *tc ) {

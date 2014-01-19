@@ -3,8 +3,6 @@
 #include "block.h"
 #include "configure.h"
 
-char *configFilename = "config.properties";
-
 static int startupAndConfigure( int argc, char *argv[] );
 
 int main( int argc, char *argv[] ) {
@@ -26,14 +24,15 @@ int main( int argc, char *argv[] ) {
 }
 
 static int startupAndConfigure( int argc, char *argv[] ) {
-    FILE *configFile;
     int i;
 
     for( i = 1; i < argc; ++i ) {
         if( argv[i][0] == '-' ) {
             switch( argv[i][1] ) {
                 case 'c':
-                    configFilename = argv[i + 1];
+                    if( !configure( argv[i + 1] ) ) {
+                        return 0;
+                    }
                     break;
                 default:
                     fprintf( stderr, "ERROR: Unknown argument: %s\n", argv[i] );
@@ -41,17 +40,6 @@ static int startupAndConfigure( int argc, char *argv[] ) {
             }
         }
     }
-
-    configFile = fopen( configFilename, "r" );
-    if( configFile == NULL ) {
-        fprintf( stderr, "ERROR: could not open file %s.\n", configFilename );
-        return 0;
-    }
-    if( !configure( configFile ) ) {
-        fclose( configFile );
-        return 0;
-    }
-    fclose( configFile );
 
     return 1;
 }
