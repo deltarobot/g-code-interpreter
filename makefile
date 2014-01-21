@@ -1,6 +1,6 @@
 objects = main block configure
 main_incl = block configure
-driver_incl = block configure
+block_incl = block configure
 configure_incl = configure
 
 cc=gcc -Isrc/include/ -Ilib/ -Wall -Wextra -pedantic -o
