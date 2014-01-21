@@ -7,13 +7,12 @@ typedef enum Mode Mode;
 
 struct Machine {
     Mode mode;
-    double xPosition, yPosition, zPosition;
+    int32_t xSteps, ySteps, zSteps;
 };
 
 struct Block {
     Mode mode;
-    double xPosition, yPosition, zPosition;
-    int xSteps, ySteps, zSteps;
+    int32_t xSteps, ySteps, zSteps;
 };
 
 typedef struct Block Block;

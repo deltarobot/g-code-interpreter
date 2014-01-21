@@ -14,14 +14,14 @@ static int processGWord( char *address, Block *block );
 static int processXWord( char *address, Block *block );
 static int processYWord( char *address, Block *block );
 static int processZWord( char *address, Block *block );
-static void getPosition( char *address, double oldPosition, double *newPosition, int *steps );
+static void calculateAbsoluteSteps( char *address, int32_t oldSteps, int32_t *newSteps );
 
 int initializeMachine( void ) {
     /* TODO: home the machine. */
     machine.mode = Rapids;
-    machine.xPosition = 0.0;
-    machine.yPosition = 0.0;
-    machine.zPosition = 0.0;
+    machine.xSteps = 0;
+    machine.ySteps = 0;
+    machine.zSteps = 0;
     return 1;
 }
 
@@ -70,24 +70,25 @@ static int processGWord( char *address, Block *block ) {
 }
 
 static int processXWord( char *address, Block *block ) {
-    getPosition( address, machine.xPosition, &block->xPosition, &block->xSteps );
+    calculateAbsoluteSteps( address, machine.xSteps, &block->xSteps );
     return 1;
 }
 
 static int processYWord( char *address, Block *block ) {
-    getPosition( address, machine.yPosition, &block->yPosition, &block->ySteps );
+    calculateAbsoluteSteps( address, machine.ySteps, &block->ySteps );
     return 1;
 }
 
 static int processZWord( char *address, Block *block ) {
-    getPosition( address, machine.zPosition, &block->zPosition, &block->zSteps );
+    calculateAbsoluteSteps( address, machine.zSteps, &block->zSteps );
     return 1;
 }
 
-static void getPosition( char *address, double oldPosition, double *newPosition, int *steps ) {
-    *newPosition = strtod( address, NULL );
+static void calculateAbsoluteSteps( char *address, int32_t oldSteps, int32_t *newSteps ) {
+    double position = strtod( address, NULL );
     if( inchMeasurements ) {
-        *newPosition = convertToMm( *newPosition );
+        position = convertToMm( position );
     }
-    *steps = ( int )( ( *newPosition - oldPosition ) / stepRatio + 0.5 );
+    *newSteps = ( int )( position / stepRatio + 0.5 ) - oldSteps;
+/*    *steps = ( int )( ( *newSteps - oldSteps ) / stepRatio + 0.5 );*/
 }
