@@ -5,6 +5,8 @@
 #include "block.h"
 #include "configure.h"
 
+#define handler(char,literal) case char: return process ## literal ## Word( word + 1, block )
+
 Machine machine;
 
 static int processWord( char *word, Block *block );
@@ -38,27 +40,15 @@ int processBlock( char *line ) {
 }
 
 static int processWord( char *word, Block *block ) {
-    int ( *processor )( char *, Block * );
-
     switch( word[0] ) {
-        case 'G':
-            processor = processGWord;
-            break;
-        case 'X':
-            processor = processXWord;
-            break;
-        case 'Y':
-            processor = processYWord;
-            break;
-        case 'Z':
-            processor = processZWord;
-            break;
+        handler( 'G', G );
+        handler( 'X', X );
+        handler( 'Y', Y );
+        handler( 'Z', Z );
         default:
             fprintf( stderr, "ERROR: Unknown word: \"%c\".\n", word[0] );
             return 0;
     }
-
-    return processor( word + 1, block );
 }
 
 static int processGWord( char *address, Block *block ) {
