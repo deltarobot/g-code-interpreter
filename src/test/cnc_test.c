@@ -23,12 +23,14 @@ static void calculateMotorMovementTest( CuTest *tc ) {
     fastMotor.acceleration = accelerationMax;
     fastMotor.speed = 2000;
 
-    calculateMotorMovement( 20000, &fastMotor, &totalTime, &constantSpeedTime );
-
+    calculateMotorMovement( 20000, &fastMotor, 1, &totalTime, &constantSpeedTime );
     CuAssert( tc, "Should have set the number of steps for the fast motor.",
     fastMotor.accelerationSteps == 2000 && fastMotor.constantSpeedSteps == 16000 && fastMotor.deaccelerationSteps == 2000 );
-
     CuAssert( tc, "Should have set the time constraints.", totalTime == 12.0 && constantSpeedTime == 8.0 );
+
+    calculateMotorMovement( 10000, &slowMotor, 0, &totalTime, &constantSpeedTime );
+    CuAssert( tc, "Should have calculated the slower motor's speed and acceleration.",
+    slowMotor.acceleration = 500 && slowMotor.speed == 1000 );
 }
 
 static void accelerationStepsTest( CuTest *tc ) {
