@@ -1,12 +1,15 @@
+#include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <unistd.h>
 #include "block.h"
 #include "cnc.h"
 #include "comm.h"
+#include "configure.h"
 
 #define STDOUT 1
 
-int fd = STDOUT;
+static int32_t accelerationSteps( double constantSpeed, double acceleration );
 
 int sendBlock( Block *block ) {
     if( block->xSteps || block->ySteps || block->zSteps ) {
@@ -15,5 +18,9 @@ int sendBlock( Block *block ) {
     } else {
         return 1;
     }
+}
+
+static int32_t accelerationSteps( double constantSpeed, double acceleration ) {
+    return pow( constantSpeed, 2 ) / acceleration;
 }
 

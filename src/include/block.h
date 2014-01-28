@@ -4,6 +4,8 @@ enum Mode {
 };
 
 typedef enum Mode Mode;
+typedef struct Block Block;
+typedef struct Machine Machine;
 
 struct Machine {
     Mode mode;
@@ -14,9 +16,6 @@ struct Block {
     Mode mode;
     int32_t xSteps, ySteps, zSteps;
 };
-
-typedef struct Block Block;
-typedef struct Machine Machine;
 
 extern Machine machine;
 

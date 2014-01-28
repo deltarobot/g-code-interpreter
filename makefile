@@ -2,7 +2,7 @@ objects = main configure block cnc
 main_incl = configure block cnc
 configure_incl = configure
 block_incl = block configure
-cnc_incl = block cnc comm
+cnc_incl = block cnc comm configure
 
 cc=gcc -Isrc/include/ -Ilib/ -Wall -Wextra -pedantic -o
 
