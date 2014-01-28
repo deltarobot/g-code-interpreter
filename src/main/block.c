@@ -25,12 +25,10 @@ int initializeMachine( void ) {
     return 1;
 }
 
-int processBlock( char *line ) {
-    Block block;
-
+int processBlock( char *line, Block *block ) {
     for( ; *line != '\0'; line++ ) {
         if( isupper( ( int )*line ) ) {
-            if( !processWord( line, &block ) ) {
+            if( !processWord( line, block ) ) {
                 return 0;
             }
         }

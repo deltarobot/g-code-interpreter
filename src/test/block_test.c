@@ -21,13 +21,17 @@ static void initializeMachineTest( CuTest* tc ) {
 }
 
 static void processBlockTest( CuTest* tc ) {
-    CuAssert( tc, "Good block.", processBlock( "G00X1.234Y342" ) );
-    CuAssert( tc, "Bad block with unknown word.", !processBlock( "G00X1.234A343" ) );
+    Block block;
+
+    CuAssert( tc, "Good block.", processBlock( "G00X1.234Y342", &block ) );
+    CuAssert( tc, "Bad block with unknown word.", !processBlock( "G00X1.234A343", &block ) );
 }
 
 static void processGWordTest( CuTest* tc ) {
-    CuAssert( tc, "Shouldn't fail on good addresses.", processBlock( "G00G01" ) );
-    CuAssert( tc, "Should fail on bad address.", !processBlock( "G02" ) );
+    Block block;
+
+    CuAssert( tc, "Shouldn't fail on good addresses.", processBlock( "G00G01", &block ) );
+    CuAssert( tc, "Should fail on bad address.", !processBlock( "G02", &block ) );
 }
 
 static void processPositionTest( CuTest *tc ) {

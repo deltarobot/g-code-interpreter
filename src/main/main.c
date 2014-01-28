@@ -8,6 +8,7 @@ static int startupAndConfigure( int argc, char *argv[] );
 int main( int argc, char *argv[] ) {
     char *line = NULL;
     size_t size = 0;
+    Block block;
 
     if( !startupAndConfigure( argc, argv ) ) {
         exit( EXIT_FAILURE );
@@ -18,7 +19,7 @@ int main( int argc, char *argv[] ) {
     }
 
     while( getline( &line, &size, stdin ) != -1 ) {
-        if( !processBlock( line ) ) {
+        if( !processBlock( line, &block ) ) {
             exit( EXIT_FAILURE );
         }
     }

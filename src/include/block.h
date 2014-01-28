@@ -21,4 +21,5 @@ typedef struct Machine Machine;
 extern Machine machine;
 
 extern int initializeMachine( void );
-extern int processBlock( char * line );
+extern int processBlock( char *line, Block *block );
+
