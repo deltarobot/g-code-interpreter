@@ -49,8 +49,8 @@ int configure( char *filename ) {
 static int processLine( char *line ) {
     ReturnValue returnValue;
 
-    if( line[0] == '#' ) {
-        /* This line of the properties file is a comment, ignore it. */
+    if( line[0] == '#' || line[0] == '\n' ) {
+        /* This line of the properties file is a comment or a blank line, ignore it. */
     } else if( readProperty( "step.ratio.mm=", line, Double, &returnValue ) ) {
         if( returnValue.doubleReturn <= 0 ) {
             fprintf( stderr, "ERROR: step.ratio must be strictly positive.\n" );
