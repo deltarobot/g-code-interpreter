@@ -9,7 +9,8 @@
 
 #define STDOUT 1
 
-static int32_t accelerationSteps( double constantSpeed, double acceleration );
+static void calculateMotorMovement( uint32_t steps, MotorMovement_t *motorMovement, double *totalTime, double *constantSpeedTime );
+static int32_t accelerationSteps( double acceleration, double speed );
 
 int sendBlock( Block *block ) {
     if( block->xSteps || block->ySteps || block->zSteps ) {
@@ -20,7 +21,17 @@ int sendBlock( Block *block ) {
     }
 }
 
-static int32_t accelerationSteps( double constantSpeed, double acceleration ) {
-    return pow( constantSpeed, 2 ) / acceleration;
+static void calculateMotorMovement( uint32_t steps, MotorMovement_t *motorMovement,
+double *totalTime, double *constantSpeedTime ) {
+    int32_t totalAccelerationSteps = accelerationSteps( motorMovement->acceleration, motorMovement->speed );
+    motorMovement->accelerationSteps = ( totalAccelerationSteps + 0.5 ) / 2;
+    motorMovement->deaccelerationSteps = totalAccelerationSteps - motorMovement->accelerationSteps;
+    motorMovement->constantSpeedSteps = steps - totalAccelerationSteps;
+    *constantSpeedTime = motorMovement->constantSpeedSteps / motorMovement->speed;
+    *totalTime = 2 * motorMovement->speed / motorMovement->acceleration + *constantSpeedTime;
+}
+
+static int32_t accelerationSteps( double acceleration, double speed ) {
+    return pow( speed, 2 ) / acceleration;
 }
 
