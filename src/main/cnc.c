@@ -23,6 +23,10 @@ int sendBlock( Block *block ) {
     }
 }
 
+/* When using for the fastest motor, be sure to set motorMovement->acceleration
+   and motorMovement->speed and this function will calculate the timing requirements.
+   When using for slower motors, be sure to send in the timing requirements as
+   calculated when run for the fastest motor. */
 static void calculateMotorMovement( int32_t steps, MotorMovement_t *motorMovement,
 char fastestMotor, double *totalTime, double *constantSpeedTime ) {
     int32_t totalAccelerationSteps;
