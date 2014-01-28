@@ -9,7 +9,7 @@
 
 #define STDOUT 1
 
-static void calculateMotorMovement( uint32_t steps, MotorMovement_t *motorMovement,
+static void calculateMotorMovement( int32_t steps, MotorMovement_t *motorMovement,
 char fastestMotor, double *totalTime, double *constantSpeedTime );
 static int32_t accelerationSteps( double acceleration, double speed );
 
@@ -22,7 +22,7 @@ int sendBlock( Block *block ) {
     }
 }
 
-static void calculateMotorMovement( uint32_t steps, MotorMovement_t *motorMovement,
+static void calculateMotorMovement( int32_t steps, MotorMovement_t *motorMovement,
 char fastestMotor, double *totalTime, double *constantSpeedTime ) {
     int32_t totalAccelerationSteps;
 
@@ -32,11 +32,24 @@ char fastestMotor, double *totalTime, double *constantSpeedTime ) {
     }
 
     totalAccelerationSteps = accelerationSteps( motorMovement->acceleration, motorMovement->speed );
-    motorMovement->accelerationSteps = ( totalAccelerationSteps + 0.5 ) / 2;
-    motorMovement->deaccelerationSteps = totalAccelerationSteps - motorMovement->accelerationSteps;
-    motorMovement->constantSpeedSteps = steps - totalAccelerationSteps;
-    *constantSpeedTime = motorMovement->constantSpeedSteps / motorMovement->speed;
-    *totalTime = 2 * motorMovement->speed / motorMovement->acceleration + *constantSpeedTime;
+
+    if( totalAccelerationSteps < steps ) {
+        motorMovement->accelerationSteps = ( totalAccelerationSteps + 0.5 ) / 2;
+        motorMovement->deaccelerationSteps = totalAccelerationSteps - motorMovement->accelerationSteps;
+        motorMovement->constantSpeedSteps = steps - totalAccelerationSteps;
+        if( fastestMotor ) {
+            *constantSpeedTime = motorMovement->constantSpeedSteps / motorMovement->speed;
+            *totalTime = 2 * motorMovement->speed / motorMovement->acceleration + *constantSpeedTime;
+        }
+    } else {
+        motorMovement->accelerationSteps = ( steps + 0.5 ) / 2;
+        motorMovement->deaccelerationSteps = steps - motorMovement->accelerationSteps;
+        motorMovement->constantSpeedSteps = 0;
+        if( fastestMotor ) {
+            *constantSpeedTime = 0.0;
+            *totalTime = 2.0 * sqrt( steps / motorMovement->acceleration );
+        }
+    }
 }
 
 static int32_t accelerationSteps( double acceleration, double speed ) {
