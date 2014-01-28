@@ -90,5 +90,4 @@ static void calculateAbsoluteSteps( char *address, int32_t oldSteps, int32_t *ne
         position = convertToMm( position );
     }
     *newSteps = ( int )( position / stepRatio + 0.5 ) - oldSteps;
-/*    *steps = ( int )( ( *newSteps - oldSteps ) / stepRatio + 0.5 );*/
 }
