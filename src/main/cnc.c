@@ -60,6 +60,10 @@ static void divideSteps( int32_t steps, int32_t totalAccelerationSteps, MotorMov
 }
 
 static int32_t accelerationSteps( double acceleration, double speed ) {
-    return pow( speed, 2 ) / acceleration;
+    if( acceleration != 0 ) {
+        return pow( speed, 2 ) / acceleration;
+    } else {
+        return 0;
+    }
 }
 
