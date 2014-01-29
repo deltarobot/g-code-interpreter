@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "block.h"
 #include "cnc.h"
@@ -31,14 +32,17 @@ static void calculateMotorMovement( int32_t steps, MotorMovement_t *motorMovemen
 char fastestMotor, double *totalTime, double *constantSpeedTime ) {
     int32_t totalAccelerationSteps;
 
-    if( !fastestMotor ) {
+    if( fastestMotor && steps < 0 ) {
+        motorMovement->acceleration = -motorMovement->acceleration;
+        motorMovement->speed = -motorMovement->speed;
+    } else if( !fastestMotor ) {
         motorMovement->speed = steps * 2 / ( *totalTime + *constantSpeedTime );
         motorMovement->acceleration = 2 * motorMovement->speed / ( *totalTime - *constantSpeedTime );
     }
 
     totalAccelerationSteps = accelerationSteps( motorMovement->acceleration, motorMovement->speed );
 
-    if( totalAccelerationSteps < steps ) {
+    if( abs( totalAccelerationSteps ) < abs( steps ) ) {
         divideSteps( steps, totalAccelerationSteps, motorMovement );
         if( fastestMotor ) {
             *constantSpeedTime = motorMovement->constantSpeedSteps / motorMovement->speed;
@@ -54,7 +58,7 @@ char fastestMotor, double *totalTime, double *constantSpeedTime ) {
 }
 
 static void divideSteps( int32_t steps, int32_t totalAccelerationSteps, MotorMovement_t *motorMovement ) {
-    motorMovement->accelerationSteps = ( totalAccelerationSteps + 0.5 ) / 2;
+    motorMovement->accelerationSteps = round( totalAccelerationSteps / 2.0 );
     motorMovement->deaccelerationSteps = totalAccelerationSteps - motorMovement->accelerationSteps;
     motorMovement->constantSpeedSteps = steps - totalAccelerationSteps;
 }

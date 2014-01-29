@@ -42,6 +42,19 @@ static void calculateMotorMovementTest( CuTest *tc ) {
     calculateMotorMovement( 0, &slowMotor, 0, &totalTime, &constantSpeedTime );
     CuAssert( tc, "Should have set up for no movement.",
     slowMotor.accelerationSteps == 0 && slowMotor.constantSpeedSteps == 0 && slowMotor.deaccelerationSteps == 0 );
+
+    calculateMotorMovement( -20000, &fastMotor, 1, &totalTime, &constantSpeedTime );
+    CuAssert( tc, "Should have set the number of steps for the fast motor.",
+    fastMotor.accelerationSteps == -2000 && fastMotor.constantSpeedSteps == -16000 && fastMotor.deaccelerationSteps == -2000 );
+    CuAssert( tc, "Should have set the time constraints.", totalTime == 12.0 && constantSpeedTime == 8.0 );
+
+    fastMotor.acceleration = accelerationMax;
+    fastMotor.speed = 2000;
+
+    calculateMotorMovement( -3000, &fastMotor, 1, &totalTime, &constantSpeedTime );
+    CuAssert( tc, "Should have set up for a negative triangular movement.",
+    fastMotor.accelerationSteps == -1500 && fastMotor.constantSpeedSteps == 0 && fastMotor.deaccelerationSteps == -1500 );
+    CuAssert( tc, "Timing should reflect triangular movement.", totalTime == 2 * sqrt( 3 ) && constantSpeedTime == 0.0 );
 }
 
 static void accelerationStepsTest( CuTest *tc ) {
