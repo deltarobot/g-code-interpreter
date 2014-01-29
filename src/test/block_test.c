@@ -13,11 +13,11 @@ static void processPositionTest( CuTest *tc );
 
 static void initializeMachineTest( CuTest* tc ) {
     machine.mode = Linear;
-    machine.xSteps = 50; machine.ySteps = 50; machine.zSteps = 50;
+    machine.steps[0] = 50; machine.steps[1] = 50; machine.steps[2] = 50;
 
     CuAssert( tc, "Machine setup failed.", initializeMachine() );
     CuAssert( tc, "Didn't set Mode.", machine.mode == Rapids );
-    CuAssert( tc, "Didn't set X, Y, and Z.", machine.xSteps == 0 && machine.ySteps == 0 && machine.zSteps == 0 );
+    CuAssert( tc, "Didn't set X, Y, and Z.", machine.steps[0] == 0 && machine.steps[1] == 0 && machine.steps[2] == 0 );
 }
 
 static void processBlockTest( CuTest* tc ) {
@@ -39,11 +39,11 @@ static void processPositionTest( CuTest *tc ) {
 
     initializeMachine();
     CuAssert( tc, "Shouldn't fail on good word.", processWord( "X1.32", &block ) && processWord( "Y3.223", &block ) && processWord( "Z2.55", &block ) );
-    CuAssert( tc, "Should have set the number of steps.", block.xSteps == 1320 && block.ySteps == 3223 && block.zSteps == 2550 );
+    CuAssert( tc, "Should have set the number of steps.", block.steps[0] == 1320 && block.steps[1] == 3223 && block.steps[2] == 2550 );
 
-    machine.xSteps = 100;
+    machine.steps[0] = 100;
     CuAssert( tc, "Shouldn't fail on good word.", processWord( "X1.32", &block ) );
-    CuAssert( tc, "Should have set the number of steps, taking into account the machine's position", block.xSteps == 1220 );
+    CuAssert( tc, "Should have set the number of steps, taking into account the machine's position", block.steps[0] == 1220 );
 }
 
 CuSuite* CuGetSuite( void ) {

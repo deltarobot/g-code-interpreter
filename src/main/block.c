@@ -19,9 +19,9 @@ static void calculateAbsoluteSteps( char *address, int32_t oldSteps, int32_t *ne
 int initializeMachine( void ) {
     /* TODO: home the machine. */
     machine.mode = Rapids;
-    machine.xSteps = 0;
-    machine.ySteps = 0;
-    machine.zSteps = 0;
+    machine.steps[0] = 0;
+    machine.steps[1] = 0;
+    machine.steps[2] = 0;
     return 1;
 }
 
@@ -68,17 +68,17 @@ static int processGWord( char *address, Block *block ) {
 }
 
 static int processXWord( char *address, Block *block ) {
-    calculateAbsoluteSteps( address, machine.xSteps, &block->xSteps );
+    calculateAbsoluteSteps( address, machine.steps[0], &block->steps[0] );
     return 1;
 }
 
 static int processYWord( char *address, Block *block ) {
-    calculateAbsoluteSteps( address, machine.ySteps, &block->ySteps );
+    calculateAbsoluteSteps( address, machine.steps[1], &block->steps[1] );
     return 1;
 }
 
 static int processZWord( char *address, Block *block ) {
-    calculateAbsoluteSteps( address, machine.zSteps, &block->zSteps );
+    calculateAbsoluteSteps( address, machine.steps[2], &block->steps[2] );
     return 1;
 }
 

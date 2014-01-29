@@ -9,12 +9,12 @@ typedef struct Machine Machine;
 
 struct Machine {
     Mode mode;
-    int32_t xSteps, ySteps, zSteps;
+    int32_t steps[3];
 };
 
 struct Block {
     Mode mode;
-    int32_t xSteps, ySteps, zSteps;
+    int32_t steps[3];
 };
 
 extern Machine machine;

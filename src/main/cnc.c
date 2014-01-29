@@ -16,12 +16,10 @@ static void divideSteps( int32_t steps, int32_t totalAccelerationSteps, MotorMov
 static int32_t accelerationSteps( double acceleration, double speed );
 
 int sendBlock( Block *block ) {
-    if( block->xSteps || block->ySteps || block->zSteps ) {
+    if( block->steps[0] || block->steps[1] || block->steps[2] ) {
         /* TODO: calculate movement and send to motor controller */
-        return 1;
-    } else {
-        return 1;
     }
+    return 1;
 }
 
 /* When using for the fastest motor, be sure to set motorMovement->acceleration
