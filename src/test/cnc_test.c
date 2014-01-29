@@ -6,15 +6,14 @@
 int accelerationMax = 1000;
 int speedMax = 10000;
 
-static void sendBlockTest( CuTest *tc );
+static Command_t expectedCommands[3];
+static size_t expectedSizes[3];
+static int expectedCommandCount;
+static CuTest *ttc;
+
 static void calculateMotorMovementTest( CuTest *tc );
 static void accelerationStepsTest( CuTest *tc );
-
-static void sendBlockTest( CuTest *tc ) {
-    Block block;
-
-    CuAssert( tc, "Should be good to send nothing.", sendBlock( &block ) );
-}
+static void processMotorMovementTest( CuTest *tc );
 
 static void calculateMotorMovementTest( CuTest *tc ) {
     MotorMovement_t fastMotor, slowMotor;
@@ -66,13 +65,37 @@ static void accelerationStepsTest( CuTest *tc ) {
     CuAssert( tc, "Should return steps performed during acceleration.", accelerationSteps( accelerationMax, 975.9 ) == 952 );
 }
 
+static void processMotorMovementTest( CuTest *tc ) {
+    int32_t steps[3] = {20000, 10000, 10000};
+
+    expectedCommandCount = 0;
+    expectedCommands[0].commandType = Accelerating;
+    expectedCommands[1].commandType = ConstantSpeed;
+    expectedCommands[2].commandType = Accelerating;
+    expectedSizes[0] = sizeof( Accelerating_t );
+    expectedSizes[1] = sizeof( ConstantSpeed_t );
+    expectedSizes[2] = sizeof( Accelerating_t );
+    ttc = tc;
+
+    processMotorMovement( steps );
+    CuAssert( tc, "Should process without segfault?", 1 );
+}
+
 CuSuite* CuGetSuite( void ) {
     CuSuite* suite = CuSuiteNew();
 
-    SUITE_ADD_TEST( suite, sendBlockTest );
     SUITE_ADD_TEST( suite, calculateMotorMovementTest );
     SUITE_ADD_TEST( suite, accelerationStepsTest );
+    SUITE_ADD_TEST( suite, processMotorMovementTest );
 
     return suite;
+}
+
+static int sendCommand( Command_t *command, size_t size ) {
+    CuAssert( ttc, "Should have same command code.", command->commandType == expectedCommands[expectedCommandCount].commandType );
+    CuAssert( ttc, "Should have same size parameter.", size == expectedSizes[expectedCommandCount] );
+
+    expectedCommandCount++;
+    return 1;
 }
 

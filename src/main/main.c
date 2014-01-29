@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "block.h"
+#include "cnc.h"
 #include "configure.h"
 
 static int startupAndConfigure( int argc, char *argv[] );
@@ -20,6 +21,9 @@ int main( int argc, char *argv[] ) {
 
     while( getline( &line, &size, stdin ) != -1 ) {
         if( !processBlock( line, &block ) ) {
+            exit( EXIT_FAILURE );
+        }
+        if( !sendBlock( &block ) ) {
             exit( EXIT_FAILURE );
         }
     }

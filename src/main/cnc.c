@@ -10,6 +10,8 @@
 
 #define STDOUT 1
 
+static int sendCommand( Command_t *command, size_t size );
+static int processMotorMovement( int32_t steps[] );
 static void calculateMotorMovement( int32_t steps, MotorMovement_t *motorMovement,
 char fastestMotor, double *totalTime, double *constantSpeedTime );
 static void divideSteps( int32_t steps, int32_t totalAccelerationSteps, MotorMovement_t *motorMovement );
@@ -17,8 +19,61 @@ static int32_t accelerationSteps( double acceleration, double speed );
 
 int sendBlock( Block *block ) {
     if( block->steps[0] || block->steps[1] || block->steps[2] ) {
-        /* TODO: calculate movement and send to motor controller */
+        if( !processMotorMovement( block->steps ) ) {
+            return 0;
+        }
     }
+    return 1;
+}
+
+#ifndef TEST
+static int sendCommand( Command_t *command, size_t size ) {
+    if( write( STDOUT, &command->command, size ) != -1 ) {
+        fprintf( stderr, "ERROR: could not print to stdout.\n" );
+        return 0;
+    } else {
+        return 1;
+    }
+}
+#endif
+
+static int processMotorMovement( int32_t steps[] ) {
+    Command_t command;
+    MotorMovement_t motorMovements[3];
+    double totalTime, constantSpeedTime;
+    int fastestMotor, i;
+
+    if( steps[0] >= steps[1] && steps[0] >= steps[2] ) {
+        fastestMotor = 0;
+    } else if( steps[1] > steps[2] ) {
+        fastestMotor = 1;
+    } else {
+        fastestMotor = 2;
+    }
+
+    motorMovements[fastestMotor].acceleration = accelerationMax;
+    motorMovements[fastestMotor].speed = speedMax;
+    calculateMotorMovement( steps[fastestMotor], &motorMovements[fastestMotor], 1, &totalTime, &constantSpeedTime );
+
+    for( i = 0; i < 3; i++ ) {
+        if( i != fastestMotor ) {
+            calculateMotorMovement( steps[i], &motorMovements[i], 1, &totalTime, &constantSpeedTime );
+        }
+    }
+
+    command.commandType = Accelerating;
+    if( !sendCommand( &command, sizeof( Accelerating_t ) ) ) {
+        return 0;
+    }
+    command.commandType = ConstantSpeed;
+    if( !sendCommand( &command, sizeof( ConstantSpeed_t ) ) ) {
+        return 0;
+    }
+    command.commandType = Accelerating;
+    if( !sendCommand( &command, sizeof( Accelerating_t ) ) ) {
+        return 0;
+    }
+
     return 1;
 }
 

@@ -3,18 +3,18 @@ enum CommandType {
     Accelerating = 1
 };
 
-typedef struct ConstantSpeed_t ConstantSpeed_t;
 typedef struct Accelerating_t Accelerating_t;
+typedef struct ConstantSpeed_t ConstantSpeed_t;
 typedef struct Command_t Command_t;
 
-struct ConstantSpeed_t {
-    int32_t xSteps, ySteps, zSteps;
-    int32_t xSpeed, ySpeed, zSpeed;
+struct Accelerating_t {
+    int32_t steps[3];
+    int32_t accelerations[3];
 };
 
-struct Accelerating_t {
-    int32_t xSteps, ySteps, zSteps;
-    int32_t xAcceleration, yAcceleration, zAcceleration;
+struct ConstantSpeed_t {
+    int32_t steps[3];
+    int32_t speeds[3];
 };
 
 struct Command_t {
