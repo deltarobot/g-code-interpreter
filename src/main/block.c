@@ -9,6 +9,8 @@
 
 Machine machine;
 
+static void cleanupBlock( Block *block );
+
 static int processWord( char *word, Block *block );
 static int processGWord( char *address, Block *block );
 static int processXWord( char *address, Block *block );
@@ -26,6 +28,8 @@ int initializeMachine( void ) {
 }
 
 int processBlock( char *line, Block *block ) {
+    cleanupBlock( block );
+
     for( ; *line != '\0'; line++ ) {
         if( isupper( ( int )*line ) ) {
             if( !processWord( line, block ) ) {
@@ -35,6 +39,15 @@ int processBlock( char *line, Block *block ) {
     }
 
     return 1;
+}
+
+static void cleanupBlock( Block *block ) {
+    int i;
+
+    block->mode = machine.mode;
+    for( i = 0; i < 3; i++ ) {
+        block->steps[i] = 0;
+    }
 }
 
 static int processWord( char *word, Block *block ) {
