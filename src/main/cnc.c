@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 
 static int sendCommand( Command_t *command, size_t size );
 static int processMotorMovement( int32_t steps[] );
+static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t commandSize, size_t stepOffset );
 static void calculateMotorMovement( int32_t steps, MotorMovement_t *motorMovement,
 char fastestMotor, double *totalTime, double *constantSpeedTime );
 static void divideSteps( int32_t steps, int32_t totalAccelerationSteps, MotorMovement_t *motorMovement );
@@ -38,7 +40,6 @@ static int sendCommand( Command_t *command, size_t size ) {
 #endif
 
 static int processMotorMovement( int32_t steps[] ) {
-    Command_t command;
     MotorMovement_t motorMovements[3];
     double totalTime, constantSpeedTime;
     int fastestMotor, i;
@@ -57,20 +58,27 @@ static int processMotorMovement( int32_t steps[] ) {
 
     for( i = 0; i < 3; i++ ) {
         if( i != fastestMotor ) {
-            calculateMotorMovement( steps[i], &motorMovements[i], 1, &totalTime, &constantSpeedTime );
+            calculateMotorMovement( steps[i], &motorMovements[i], 0, &totalTime, &constantSpeedTime );
         }
     }
 
-    command.commandType = Accelerating;
-    if( !sendCommand( &command, sizeof( Accelerating_t ) ) ) {
-        return 0;
+    sendMotorMovement( motorMovements, Accelerating, sizeof( Accelerating_t ), offsetof( MotorMovement_t, accelerationSteps ) );
+    sendMotorMovement( motorMovements, ConstantSpeed, sizeof( ConstantSpeed_t ), offsetof( MotorMovement_t, constantSpeedSteps ) );
+    sendMotorMovement( motorMovements, Accelerating, sizeof( Accelerating_t ), offsetof( MotorMovement_t, deaccelerationSteps ) );
+
+    return 1;
+}
+
+static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t commandSize, size_t stepOffset ) {
+    Command_t command;
+    int i;
+
+    command.commandType = commandType;
+    for( i = 0; i < 3; i++ ) {
+        command.command.accelerating.steps[i] = *( int32_t* )( ( char* )&motorMovements[i] + stepOffset );
     }
-    command.commandType = ConstantSpeed;
-    if( !sendCommand( &command, sizeof( ConstantSpeed_t ) ) ) {
-        return 0;
-    }
-    command.commandType = Accelerating;
-    if( !sendCommand( &command, sizeof( Accelerating_t ) ) ) {
+
+    if( !sendCommand( &command, commandSize ) ) {
         return 0;
     }
 

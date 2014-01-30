@@ -4,7 +4,7 @@
 #include "CuTest.h"
 
 int accelerationMax = 1000;
-int speedMax = 10000;
+int speedMax = 2000;
 
 static Command_t expectedCommands[3];
 static size_t expectedSizes[3];
@@ -20,7 +20,7 @@ static void calculateMotorMovementTest( CuTest *tc ) {
     double totalTime, constantSpeedTime;
 
     fastMotor.acceleration = accelerationMax;
-    fastMotor.speed = 2000;
+    fastMotor.speed = speedMax;
 
     calculateMotorMovement( 20000, &fastMotor, 1, &totalTime, &constantSpeedTime );
     CuAssert( tc, "Should have set the number of steps for the fast motor.",
@@ -66,12 +66,21 @@ static void accelerationStepsTest( CuTest *tc ) {
 }
 
 static void processMotorMovementTest( CuTest *tc ) {
-    int32_t steps[3] = {20000, 10000, 10000};
+    int32_t steps[3] = {20000, 10000, -10000};
 
     expectedCommandCount = 0;
     expectedCommands[0].commandType = Accelerating;
     expectedCommands[1].commandType = ConstantSpeed;
     expectedCommands[2].commandType = Accelerating;
+    expectedCommands[0].command.accelerating.steps[0] = 2000;
+    expectedCommands[0].command.accelerating.steps[1] = 1000;
+    expectedCommands[0].command.accelerating.steps[2] = -1000;
+    expectedCommands[1].command.constantSpeed.steps[0] = 16000;
+    expectedCommands[1].command.constantSpeed.steps[1] = 8000;
+    expectedCommands[1].command.constantSpeed.steps[2] = -8000;
+    expectedCommands[2].command.accelerating.steps[0] = 2000;
+    expectedCommands[2].command.accelerating.steps[1] = 1000;
+    expectedCommands[2].command.accelerating.steps[2] = -1000;
     expectedSizes[0] = sizeof( Accelerating_t );
     expectedSizes[1] = sizeof( ConstantSpeed_t );
     expectedSizes[2] = sizeof( Accelerating_t );
@@ -92,7 +101,12 @@ CuSuite* CuGetSuite( void ) {
 }
 
 static int sendCommand( Command_t *command, size_t size ) {
+    int i;
+    
     CuAssert( ttc, "Should have same command code.", command->commandType == expectedCommands[expectedCommandCount].commandType );
+    for( i = 0; i < 3; i++ ) {
+        CuAssert( ttc, "Should have same steps.", command->command.accelerating.steps[i] == expectedCommands[expectedCommandCount].command.accelerating.steps[i] );
+    }
     CuAssert( ttc, "Should have same size parameter.", size == expectedSizes[expectedCommandCount] );
 
     expectedCommandCount++;
