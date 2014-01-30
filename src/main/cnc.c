@@ -95,7 +95,7 @@ size_t doubleOffset, DoubleConverter doubleConverter ) {
     for( i = 0; i < 3; i++ ) {
         steps = *( int32_t* )( ( char* )&motorMovements[i] + stepOffset );
         movement = doubleConverter( *( double* )( ( char* )&motorMovements[i] + doubleOffset ) );
-        command.command.accelerating.steps[i] = steps;
+        command.command.accelerating.steps[i] = abs( steps );
         command.command.accelerating.accelerations[i] = movement;
     }
 
