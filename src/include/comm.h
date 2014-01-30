@@ -1,3 +1,5 @@
+#define NUM_MOTORS 3
+
 enum CommandType {
     ConstantSpeed = 0,
     Accelerating = 1
@@ -8,13 +10,13 @@ typedef struct ConstantSpeed_t ConstantSpeed_t;
 typedef struct Command_t Command_t;
 
 struct Accelerating_t {
-    int32_t steps[3];
-    int32_t accelerations[3];
+    int32_t steps[NUM_MOTORS];
+    int32_t accelerations[NUM_MOTORS];
 };
 
 struct ConstantSpeed_t {
-    int32_t steps[3];
-    int32_t speeds[3];
+    int32_t steps[NUM_MOTORS];
+    int32_t speeds[NUM_MOTORS];
 };
 
 struct Command_t {

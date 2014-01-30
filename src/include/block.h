@@ -1,3 +1,5 @@
+#define NUM_MOTORS 3
+
 enum Mode {
     Rapids = 0,
     Linear = 1
@@ -9,12 +11,12 @@ typedef struct Machine Machine;
 
 struct Machine {
     Mode mode;
-    int32_t steps[3];
+    int32_t steps[NUM_MOTORS];
 };
 
 struct Block {
     Mode mode;
-    int32_t steps[3];
+    int32_t steps[NUM_MOTORS];
 };
 
 extern Machine machine;

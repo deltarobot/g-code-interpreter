@@ -66,7 +66,7 @@ static void accelerationStepsTest( CuTest *tc ) {
 }
 
 static void processMotorMovementTest( CuTest *tc ) {
-    int32_t steps[3] = {20000, 10000, -10000};
+    int32_t steps[NUM_MOTORS] = {20000, 10000, -10000};
 
     expectedCommandCount = 0;
     expectedCommands[0].commandType = Accelerating;
@@ -113,7 +113,7 @@ static int sendCommand( Command_t *command, size_t size ) {
     int i;
 
     CuAssert( ttc, "Should have same command code.", command->commandType == expectedCommands[expectedCommandCount].commandType );
-    for( i = 0; i < 3; i++ ) {
+    for( i = 0; i < NUM_MOTORS; i++ ) {
         CuAssert( ttc, "Should have same steps.", command->command.accelerating.steps[i] == expectedCommands[expectedCommandCount].command.accelerating.steps[i] );
         CuAssert( ttc, "Should have same acceleration/speed.", command->command.accelerating.accelerations[i] == expectedCommands[expectedCommandCount].command.accelerating.accelerations[i] );
     }

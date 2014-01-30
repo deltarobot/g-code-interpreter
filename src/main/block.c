@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "block.h"
+#include "comm.h"
 #include "configure.h"
 
 #define handler(char,literal) case char: return process ## literal ## Word( word + 1, block )
@@ -19,11 +20,13 @@ static int processZWord( char *address, Block *block );
 static void calculateAbsoluteSteps( char *address, int32_t oldSteps, int32_t *newSteps );
 
 int initializeMachine( void ) {
+    int i;
     /* TODO: home the machine. */
+
     machine.mode = Rapids;
-    machine.steps[0] = 0;
-    machine.steps[1] = 0;
-    machine.steps[2] = 0;
+    for( i = 0; i < NUM_MOTORS; i++ ) {
+        machine.steps[i] = 0;
+    }
     return 1;
 }
 
@@ -45,7 +48,7 @@ static void cleanupBlock( Block *block ) {
     int i;
 
     block->mode = machine.mode;
-    for( i = 0; i < 3; i++ ) {
+    for( i = 0; i < NUM_MOTORS; i++ ) {
         block->steps[i] = 0;
     }
 }
