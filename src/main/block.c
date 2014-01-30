@@ -100,5 +100,5 @@ static void calculateAbsoluteSteps( char *address, int32_t oldSteps, int32_t *ne
     if( inchMeasurements ) {
         position = convertToMm( position );
     }
-    *newSteps = ( int )( position / stepRatio + 0.5 ) - oldSteps;
+    *newSteps = round( position / stepRatio ) - oldSteps;
 }
