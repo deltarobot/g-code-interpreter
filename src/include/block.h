@@ -11,11 +11,13 @@ typedef struct Machine Machine;
 
 struct Machine {
     Mode mode;
+    char absolute;
     int32_t steps[NUM_MOTORS];
 };
 
 struct Block {
     Mode mode;
+    char absolute;
     int32_t steps[NUM_MOTORS];
 };
 
