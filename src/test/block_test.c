@@ -45,8 +45,12 @@ static void processPositionTest( CuTest *tc ) {
     CuAssert( tc, "Shouldn't fail on good word.", processWord( "X1.32", &block ) );
     CuAssert( tc, "Should have set the number of steps, taking into account the machine's position.", block.steps[0] == 1220 );
 
-    CuAssert( tc, "Shouldn't fail on good word.", processBlock( "G91X1.32G90", &block ) );
+    CuAssert( tc, "Shouldn't fail on good block.", processBlock( "G91X1.32G90", &block ) );
     CuAssert( tc, "Should have set the number of steps on relative move.", block.steps[0] == 1320 );
+
+    machine.steps[0] = 0;
+    CuAssert( tc, "Shouldn't fail on good block.", processBlock( "G20X0.1G21", &block ) );
+    CuAssert( tc, "Should have set the number of steps based on inches.", block.steps[0] == 2540 );
 }
 
 CuSuite* CuGetSuite( void ) {

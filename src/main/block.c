@@ -77,6 +77,12 @@ static int processGWord( char *address, Block *block ) {
         case 1:
             block->mode = Linear;
             break;
+        case 20:
+            inchMeasurements = 1;
+            break;
+        case 21:
+            inchMeasurements = 0;
+            break;
         case 90:
             block->absolute = 1;
             break;
