@@ -4,7 +4,7 @@ configure_incl = configure
 block_incl = block configure
 cnc_incl = block cnc comm configure
 
-cc=gcc -Isrc/include/ -Ilib/ -Wall -Wextra -pedantic -o
+cc=gcc -Isrc/include/ -Ilib/ -Wall -Wextra -pedantic -lm -o
 
 code = $(patsubst %,src/main/%.c,$1)
 incl = $(patsubst %,src/include/%.h,$1)
