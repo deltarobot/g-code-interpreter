@@ -28,7 +28,13 @@ int main( int argc, char *argv[] ) {
         exit( EXIT_FAILURE );
     }
 
-    while( getline( &line, &size, stdin ) != -1 ) {
+    for( ;; ) {
+        if( getline( &line, &size, stdin ) == -1 ) {
+            if( !openReadPipe() ) {
+                exit( EXIT_FAILURE );
+            }
+            continue;
+        }
         if( !processBlock( line, &block ) ) {
             exit( EXIT_FAILURE );
         }
@@ -72,14 +78,14 @@ static int openPipe( char *filename, int fdReplace, mode_t mode ) {
     int fd;
 
     if( filename == NULL ) {
-        printf( "No pipe to open, using file descriptor %d as normal.\n", fdReplace );
+        fprintf( stderr, "No pipe to open, using file descriptor %d as normal.\n", fdReplace );
         return 1;
     }
 
     fd = open( filename, mode );
 
     if( fd == -1 ) {
-        fprintf( stderr, "Could not open pipe at %s.\n", filename );
+        fprintf( stderr, "ERROR: Could not open pipe at %s.\n", filename );
         return 0;
     }
 
