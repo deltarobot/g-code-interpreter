@@ -9,7 +9,6 @@
 #include "comm.h"
 #include "configure.h"
 
-#define STDOUT 1
 #define FREQUENCY 100000
 #define ACCELERATION pow( 2, 33 ) / pow( FREQUENCY, 2 )
 #define SPEED pow( 2, 32 ) / FREQUENCY
@@ -41,7 +40,7 @@ int sendBlock( Block *block ) {
 
 #ifndef TEST
 static int sendCommand( Command_t *command, size_t size ) {
-    if( write( STDOUT, &command->command, size ) != -1 ) {
+    if( write( fileno( stdout ), &command->command, size ) == -1 ) {
         fprintf( stderr, "ERROR: could not print to stdout.\n" );
         return 0;
     } else {
