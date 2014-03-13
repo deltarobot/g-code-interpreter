@@ -15,10 +15,10 @@
 
 typedef int32_t ( *DoubleConverter )( double );
 
-static int sendCommand( Command_t *command, size_t size );
+static int sendCommand( Command_t *command );
 
 static int processMotorMovement( int32_t steps[] );
-static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t commandSize, size_t stepOffset,
+static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset,
 size_t doubleOffset, DoubleConverter doubleConverter );
 static int32_t accelerationConverter( double acceleration );
 static int32_t speedConverter( double speed );
@@ -39,8 +39,8 @@ int sendBlock( Block *block ) {
 }
 
 #ifndef TEST
-static int sendCommand( Command_t *command, size_t size ) {
-    if( write( fileno( stdout ), &command->command, size ) == -1 ) {
+static int sendCommand( Command_t *command ) {
+    if( write( fileno( stdout ), command, sizeof( Command_t ) ) == -1 ) {
         fprintf( stderr, "ERROR: could not print to stdout.\n" );
         return 0;
     } else {
@@ -72,11 +72,11 @@ static int processMotorMovement( int32_t steps[] ) {
         }
     }
 
-    if( !sendMotorMovement( motorMovements, Accelerating, sizeof( Accelerating_t ), offsetof( MotorMovement_t, accelerationSteps ),
+    if( !sendMotorMovement( motorMovements, Accelerating, offsetof( MotorMovement_t, accelerationSteps ),
     offsetof( MotorMovement_t, acceleration ), accelerationConverter )
-    || !sendMotorMovement( motorMovements, ConstantSpeed, sizeof( ConstantSpeed_t ), offsetof( MotorMovement_t, constantSpeedSteps ),
+    || !sendMotorMovement( motorMovements, ConstantSpeed, offsetof( MotorMovement_t, constantSpeedSteps ),
     offsetof( MotorMovement_t, speed ), speedConverter )
-    || !sendMotorMovement( motorMovements, Accelerating, sizeof( Accelerating_t ), offsetof( MotorMovement_t, deaccelerationSteps ),
+    || !sendMotorMovement( motorMovements, Accelerating, offsetof( MotorMovement_t, deaccelerationSteps ),
     offsetof( MotorMovement_t, acceleration ), deaccelerationConverter ) ) {
         return 0;
     }
@@ -84,21 +84,21 @@ static int processMotorMovement( int32_t steps[] ) {
     return 1;
 }
 
-static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t commandSize, size_t stepOffset,
+static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset,
 size_t doubleOffset, DoubleConverter doubleConverter ) {
     Command_t command;
     int i;
     int32_t steps, movement;
 
     command.commandType = commandType;
-    for( i = 0; i < 3; i++ ) {
+    for( i = 0; i < NUM_MOTORS; i++ ) {
         steps = *( int32_t* )( ( char* )&motorMovements[i] + stepOffset );
         movement = doubleConverter( *( double* )( ( char* )&motorMovements[i] + doubleOffset ) );
         command.command.accelerating.steps[i] = abs( steps );
         command.command.accelerating.accelerations[i] = movement;
     }
 
-    if( !sendCommand( &command, commandSize ) ) {
+    if( !sendCommand( &command ) ) {
         return 0;
     }
 

@@ -7,7 +7,6 @@ int accelerationMax = 1000;
 int speedMax = 2000;
 
 static Command_t expectedCommands[3];
-static size_t expectedSizes[3];
 static int expectedCommandCount;
 static CuTest *ttc;
 
@@ -90,9 +89,6 @@ static void processMotorMovementTest( CuTest *tc ) {
     expectedCommands[2].command.accelerating.accelerations[0] = -858993;
     expectedCommands[2].command.accelerating.accelerations[1] = -214748;
     expectedCommands[2].command.accelerating.accelerations[2] = 214748;
-    expectedSizes[0] = sizeof( Accelerating_t );
-    expectedSizes[1] = sizeof( ConstantSpeed_t );
-    expectedSizes[2] = sizeof( Accelerating_t );
     ttc = tc;
 
     processMotorMovement( steps );
@@ -109,7 +105,8 @@ CuSuite* CuGetSuite( void ) {
     return suite;
 }
 
-static int sendCommand( Command_t *command, size_t size ) {
+#ifdef TEST
+static int sendCommand( Command_t *command ) {
     int i;
 
     CuAssert( ttc, "Should have same command code.", command->commandType == expectedCommands[expectedCommandCount].commandType );
@@ -117,9 +114,9 @@ static int sendCommand( Command_t *command, size_t size ) {
         CuAssert( ttc, "Should have same steps.", command->command.accelerating.steps[i] == expectedCommands[expectedCommandCount].command.accelerating.steps[i] );
         CuAssert( ttc, "Should have same acceleration/speed.", command->command.accelerating.accelerations[i] == expectedCommands[expectedCommandCount].command.accelerating.accelerations[i] );
     }
-    CuAssert( ttc, "Should have same size parameter.", size == expectedSizes[expectedCommandCount] );
 
     expectedCommandCount++;
     return 1;
 }
+#endif
 
