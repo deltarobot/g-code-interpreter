@@ -17,7 +17,7 @@ objects_no_main = $(filter-out main,$(objects))
 all_libs = $(foreach object,$(objects),$($(object)_lib))
 
 define make_object =
-$(call targ,$1): $(call code,$1) $(call incl,$($1_incl))
+$(call targ,$1): $(call code,$1) $(call incl,$($1_incl)) | target
 	$(cc) $(call targ,$1) -c $(call code,$1)
 endef
 
@@ -41,5 +41,14 @@ $(foreach object,$(objects_no_main),$(eval $(call make_test,$(object))))
 
 $(foreach lib,$(all_libs) CuTest,$(eval $(call make_lib,$(lib))))
 
+install: all | ~/bin
+	cp target/g-code-interpreter ~/bin/
+
+~/bin:
+	mkdir ~/bin
+
+target:
+	mkdir target
+
 clean:
-	rm -f target/*
+	rm -r target
