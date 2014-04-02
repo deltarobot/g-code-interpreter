@@ -9,7 +9,7 @@
 #include "comm.h"
 #include "configure.h"
 
-#define FREQUENCY 100000
+#define FREQUENCY 50000
 #define ACCELERATION pow( 2, 33 ) / pow( FREQUENCY, 2 )
 #define SPEED pow( 2, 32 ) / FREQUENCY
 
