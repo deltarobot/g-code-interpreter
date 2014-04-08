@@ -54,9 +54,9 @@ static int processMotorMovement( int32_t steps[] ) {
     double totalTime, constantSpeedTime;
     int fastestMotor, i;
 
-    if( steps[0] >= steps[1] && steps[0] >= steps[2] ) {
+    if( abs( steps[0] ) >= abs( steps[1] ) && abs( steps[0] ) >= abs( steps[2] ) ) {
         fastestMotor = 0;
-    } else if( steps[1] > steps[2] ) {
+    } else if( abs( steps[1] ) > abs( steps[2] ) ) {
         fastestMotor = 1;
     } else {
         fastestMotor = 2;
