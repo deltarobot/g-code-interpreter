@@ -2,8 +2,8 @@
 #include "CuTest.h"
 
 double stepRatio = 0.001;
-int accelerationMax = 1;
-int speedMax = 1;
+double accelerationMax = 1;
+double speedMax = 1;
 int inchMeasurements = 0;
 
 static void initializeMachineTest( CuTest *tc );

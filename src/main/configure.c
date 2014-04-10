@@ -17,8 +17,8 @@ typedef enum ReturnType ReturnType;
 typedef union ReturnValue ReturnValue;
 
 double stepRatio = 1.0;
-int accelerationMax = 1;
-int speedMax = 1;
+double accelerationMax = 1;
+double speedMax = 1;
 int inchMeasurements = 0;
 
 static int processLine( char *line );
@@ -70,14 +70,14 @@ static int processLine( char *line ) {
             fprintf( stderr, "ERROR: acceleration.max must be strictly positive.\n" );
             return 0;
         } else {
-            accelerationMax = returnValue.intReturn;
+            accelerationMax = returnValue.doubleReturn;
         }
     } else if( readProperty( "speed.max=", line, Int, &returnValue ) ) {
         if( returnValue.intReturn <= 0 ) {
             fprintf( stderr, "ERROR: speed.max must be strictly positive.\n" );
             return 0;
         } else {
-            speedMax = returnValue.intReturn;
+            speedMax = returnValue.doubleReturn;
         }
     } else if( readProperty( "measurement.inch=", line, Int, &returnValue ) ) {
         if( returnValue.intReturn == 0 ) {

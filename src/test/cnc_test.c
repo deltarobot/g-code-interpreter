@@ -3,8 +3,8 @@
 #include "cnc.c"
 #include "CuTest.h"
 
-int accelerationMax = 1000;
-int speedMax = 2000;
+double accelerationMax = 100;
+double speedMax = 10000;
 
 static Command_t expectedCommands[3];
 static int expectedCommandCount;
