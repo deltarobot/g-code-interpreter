@@ -110,13 +110,18 @@ static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType
 }
 
 static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMovement_t *motorMovement ) {
-    double ratio = ( ( double ) steps ) / abs ( maxSteps );
+    int32_t accelerationSteps;
+    double ratio = ( ( double ) steps ) / abs( maxSteps );
 
     motorMovement->speed = speedMax * ratio;
     motorMovement->acceleration = accelerationMax * ratio;
-    motorMovement->accelerationSteps = getAccelerationSteps( motorMovement->acceleration, motorMovement->speed );
-    motorMovement->deaccelerationSteps = motorMovement->accelerationSteps;
-    motorMovement->constantSpeedSteps = abs( steps ) - 2 * motorMovement->accelerationSteps;
+    accelerationSteps = getAccelerationSteps( motorMovement->acceleration, motorMovement->speed );
+    if( accelerationSteps * 2 > abs( steps ) ) {
+        accelerationSteps = abs( steps ) / 2;
+    }
+    motorMovement->accelerationSteps = accelerationSteps;
+    motorMovement->deaccelerationSteps = accelerationSteps;
+    motorMovement->constantSpeedSteps = abs( steps ) - 2 * accelerationSteps;
 }
 
 static int32_t getAccelerationSteps( double acceleration, double speed ) {
