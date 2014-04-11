@@ -65,15 +65,15 @@ static int processLine( char *line ) {
         } else {
             stepRatio = convertToMm( returnValue.doubleReturn );
         }
-    } else if( readProperty( "acceleration.max=", line, Int, &returnValue ) ) {
-        if( returnValue.intReturn <= 0 ) {
+    } else if( readProperty( "acceleration.max=", line, Double, &returnValue ) ) {
+        if( returnValue.doubleReturn <= 0 ) {
             fprintf( stderr, "ERROR: acceleration.max must be strictly positive.\n" );
             return 0;
         } else {
             accelerationMax = returnValue.doubleReturn;
         }
-    } else if( readProperty( "speed.max=", line, Int, &returnValue ) ) {
-        if( returnValue.intReturn <= 0 ) {
+    } else if( readProperty( "speed.max=", line, Double, &returnValue ) ) {
+        if( returnValue.doubleReturn <= 0 ) {
             fprintf( stderr, "ERROR: speed.max must be strictly positive.\n" );
             return 0;
         } else {
