@@ -36,10 +36,10 @@ int main( int argc, char *argv[] ) {
             continue;
         }
         if( !processBlock( line, &block ) ) {
-            exit( EXIT_FAILURE );
+            fprintf( stderr, "Issue with line [%s].\n", line );
         }
         if( !sendBlock( &block ) ) {
-            exit( EXIT_FAILURE );
+            fprintf( stderr, "Issue with processing the block.\n" );
         }
     }
 
