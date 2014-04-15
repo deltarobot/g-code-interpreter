@@ -16,7 +16,7 @@ static int startupAndConfigure( int argc, char *argv[] );
 static int openPipe( char *filename, int fdReplace, mode_t mode );
 
 int main( int argc, char *argv[] ) {
-    char *line = NULL;
+    char *line = "G28";
     size_t size = 0;
     Block block;
 
@@ -29,17 +29,17 @@ int main( int argc, char *argv[] ) {
     }
 
     for( ;; ) {
-        if( getline( &line, &size, stdin ) == -1 ) {
-            if( !openReadPipe() ) {
-                exit( EXIT_FAILURE );
-            }
-            continue;
-        }
         if( !processBlock( line, &block ) ) {
             exit( EXIT_FAILURE );
         }
         if( !sendBlock( &block ) ) {
             exit( EXIT_FAILURE );
+        }
+        if( getline( &line, &size, stdin ) == -1 ) {
+            if( !openReadPipe() ) {
+                exit( EXIT_FAILURE );
+            }
+            continue;
         }
     }
 

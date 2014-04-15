@@ -19,13 +19,18 @@ static int sendCommand( Command_t *command );
 static int processMotorMovement( int32_t steps[] );
 static double calculateTotalTime( int32_t steps );
 static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset, size_t doubleOffset, int sign );
-
 static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMovement_t *motorMovement );
 static int32_t getAccelerationSteps( double acceleration, double speed );
+
+static int processHome( void );
 
 int sendBlock( Block *block ) {
     if( block->steps[0] || block->steps[1] || block->steps[2] ) {
         if( !processMotorMovement( block->steps ) ) {
+            return 0;
+        }
+    } else if( block->home ) {
+        if( !processHome() ) {
             return 0;
         }
     }
@@ -129,5 +134,21 @@ static int32_t getAccelerationSteps( double acceleration, double speed ) {
     double algorithmAcceleration = TO_ALG( acceleration );
     double accelerationMovement = algorithmAcceleration * accelerationInterrupts * ( accelerationInterrupts + 1 ) / 2;
     return fabs( accelerationMovement ) / UINT32_MAX;
+}
+
+static int processHome( void ) {
+    Command_t command;
+    int32_t acceleration = TO_ALG( accelerationMax );
+    int32_t speed = TO_ALG( speedMax );
+    int i;
+
+    command.commandType = Home;
+    for( i = 0; i < NUM_MOTORS; i++ ) {
+        command.command.home.speeds[i] = speed;
+        command.command.home.accelerations[i] = acceleration;
+    }
+    sendCommand( &command );
+
+    return 1;
 }
 

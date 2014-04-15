@@ -18,6 +18,7 @@ struct Machine {
 struct Block {
     Mode mode;
     char absolute;
+    char home;
     int32_t steps[NUM_MOTORS];
 };
 
