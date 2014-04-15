@@ -14,6 +14,7 @@
 #define TO_ALG(x) x * UINT32_MAX / FREQUENCY
 #define SIGN(x) ( x >= 0 ? 1 : -1 )
 
+static int sendNumberCommands( char numberCommands );
 static int sendCommand( Command_t *command );
 
 static int processMotorMovement( int32_t steps[] );
@@ -26,10 +27,12 @@ static int processHome( void );
 
 int sendBlock( Block *block ) {
     if( block->steps[0] || block->steps[1] || block->steps[2] ) {
+        sendNumberCommands( 3 );
         if( !processMotorMovement( block->steps ) ) {
             return 0;
         }
     } else if( block->home ) {
+        sendNumberCommands( 1 );
         if( !processHome() ) {
             return 0;
         }
@@ -38,6 +41,17 @@ int sendBlock( Block *block ) {
 }
 
 #ifndef TEST
+static int sendNumberCommands( char numberCommands ) {
+    fprintf( stderr, "Number Commands: %d\n", numberCommands );
+
+    if( write( fileno( stdout ), &numberCommands, 1 ) == -1 ) {
+        fprintf( stderr, "ERROR: could not print to stdout.\n" );
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
 static int sendCommand( Command_t *command ) {
     fprintf( stderr, "X acc/speed: %d, X steps: %d.\n", command->command.accelerating.accelerations[0], command->command.accelerating.steps[0] );
 

@@ -90,6 +90,10 @@ CuSuite* CuGetSuite( void ) {
 }
 
 #ifdef TEST
+static int sendNumberCommands( char numberCommands ) {
+    return 1;
+}
+
 static int sendCommand( Command_t *command ) {
     int i;
 
