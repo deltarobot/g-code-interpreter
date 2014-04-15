@@ -36,12 +36,12 @@ static void configureRatioInchTest( CuTest *tc ) {
 
 static void configureAccelerationTest( CuTest *tc ) {
     configureString( tc, "acceleration.max=500\n", 1 );
-    CuAssert( tc, "Didn't set the accelerationMax correctly.", accelerationMax == 500 );
+    CuAssert( tc, "Didn't set the accelerationMax correctly.", accelerationMax - 500 < 0.00001 );
 }
 
 static void configureSpeedTest( CuTest *tc ) {
     configureString( tc, "speed.max=10000", 1 );
-    CuAssert( tc, "Didn't set the speedMax correctly.", speedMax == 10000 );
+    CuAssert( tc, "Didn't set the speedMax correctly.", speedMax - 10000 < 0.00001 );
 }
 
 static void configureInchesTest( CuTest *tc ) {
