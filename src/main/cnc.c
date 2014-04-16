@@ -12,7 +12,6 @@
 
 #define FREQUENCY 50000
 #define TO_ALG(x) x * UINT32_MAX / FREQUENCY
-#define SIGN(x) ( x >= 0 ? 1 : -1 )
 
 static int sendNumberCommands( char numberCommands );
 static int sendCommand( Command_t *command );
@@ -158,8 +157,8 @@ static int processHome( void ) {
 
     command.commandType = Home;
     for( i = 0; i < NUM_MOTORS; i++ ) {
-        command.command.home.speeds[i] = speed;
-        command.command.home.accelerations[i] = acceleration;
+        command.command.home.speeds[i] = speed * homeDirections[0];
+        command.command.home.accelerations[i] = acceleration * homeDirections[0];
     }
     sendCommand( &command );
 

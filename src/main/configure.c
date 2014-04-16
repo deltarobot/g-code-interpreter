@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "comm.h"
 #include "configure.h"
 
 enum ReturnType {
@@ -20,6 +21,7 @@ double stepRatio = 1.0;
 double accelerationMax = 1;
 double speedMax = 1;
 int inchMeasurements = 0;
+int homeDirections[NUM_MOTORS] = {-1, -1, -1};
 
 static int processLine( char *line );
 static int readProperty( char *propertyName, char *line, ReturnType returnType, ReturnValue *returnValue );
@@ -88,6 +90,12 @@ static int processLine( char *line ) {
             fprintf( stderr, "ERROR: measurement.inch must be \"0\" or \"1\".\n" );
             return 0;
         }
+    } else if( readProperty( "home.direction.x=", line, Int, &returnValue ) ) {
+        homeDirections[0] = sign( returnValue.intReturn );
+    } else if( readProperty( "home.direction.y=", line, Int, &returnValue ) ) {
+        homeDirections[1] = sign( returnValue.intReturn );
+    } else if( readProperty( "home.direction.z=", line, Int, &returnValue ) ) {
+        homeDirections[2] = sign( returnValue.intReturn );
     } else {
         fprintf( stderr, "ERROR: Unknown configuration line: %s", line );
         return 0;

@@ -5,6 +5,7 @@
 
 double accelerationMax = 100;
 double speedMax = 10000;
+int homeDirections[NUM_MOTORS];
 
 static Command_t expectedCommands[3];
 static int expectedCommandCount;
