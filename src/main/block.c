@@ -21,7 +21,6 @@ static void calculateAbsoluteSteps( char *address, Block *block, int32_t oldStep
 
 int initializeMachine( void ) {
     int i;
-    /* TODO: home the machine. */
 
     machine.mode = Rapids;
     machine.absolute = 1;
@@ -49,6 +48,7 @@ static void cleanupBlock( Block *block ) {
     int i;
 
     block->mode = machine.mode;
+    block->home = 0;
     block->absolute = machine.absolute;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         block->steps[i] = 0;
@@ -82,6 +82,9 @@ static int processGWord( char *address, Block *block ) {
             break;
         case 21:
             inchMeasurements = 0;
+            break;
+        case 28:
+            block->home = 1;
             break;
         case 90:
             block->absolute = 1;
