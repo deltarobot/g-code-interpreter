@@ -89,13 +89,9 @@ static int openPipe( char *filename, int fdReplace, mode_t mode ) {
         return 0;
     }
 
-    fprintf( stderr, "Opened pipe at %s.\n", filename );
-
     close( fdReplace );
     dup( fd );
     close( fd );
-
-    fprintf( stderr, "Duplicated pipe to file descriptor %d.\n", fdReplace );
 
     return 1;
 }
