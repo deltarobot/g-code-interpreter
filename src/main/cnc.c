@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include "block.h"
 #include "cnc.h"
@@ -57,7 +58,7 @@ static int sendTotalTime( double totalTime ) {
 
     time.tv_sec = ( long )totalTime;
     time.tv_nsec = ( totalTime - time.tv_sec ) * 1000000000;
-    return sendData( &time, sizeof( Command_t ) );
+    return sendData( &time, sizeof( struct timespec ) );
 }
 
 static int sendData( void *data, size_t size ) {
