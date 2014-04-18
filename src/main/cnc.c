@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include "block.h"
 #include "cnc.h"
@@ -15,46 +16,53 @@
 
 static int sendNumberCommands( char numberCommands );
 static int sendCommand( Command_t *command );
+static int sendTotalTime( double time );
+static int sendData( void *data, size_t size );
 
-static int processMotorMovement( int32_t steps[] );
+static double processMotorMovement( int32_t steps[] );
 static double calculateTotalTime( int32_t steps );
 static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset, size_t doubleOffset, int sign );
 static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMovement_t *motorMovement );
 static int32_t getAccelerationSteps( double acceleration, double speed );
 
-static int processHome( void );
+static double processHome( void );
 
 int sendBlock( Block *block ) {
+    double totalTime;
     if( block->steps[0] || block->steps[1] || block->steps[2] ) {
         sendNumberCommands( 3 );
-        if( !processMotorMovement( block->steps ) ) {
-            return 0;
-        }
+        totalTime = processMotorMovement( block-> steps );
     } else if( block->home ) {
         sendNumberCommands( 1 );
-        if( !processHome() ) {
-            return 0;
-        }
+        totalTime = processHome();
     }
+
+    if( !sendTotalTime( totalTime ) ) {
+        return 0;
+    }
+
     return 1;
 }
 
 #ifndef TEST
 static int sendNumberCommands( char numberCommands ) {
-    fprintf( stderr, "Number Commands: %d\n", numberCommands );
-
-    if( write( fileno( stdout ), &numberCommands, 1 ) == -1 ) {
-        fprintf( stderr, "ERROR: could not print to stdout.\n" );
-        return 0;
-    } else {
-        return 1;
-    }
+    return sendData( &numberCommands, 1 );
 }
 
 static int sendCommand( Command_t *command ) {
-    fprintf( stderr, "X acc/speed: %d, X steps: %d.\n", command->command.accelerating.accelerations[0], command->command.accelerating.steps[0] );
+    return sendData( command, sizeof( Command_t ) );
+}
 
-    if( write( fileno( stdout ), command, sizeof( Command_t ) ) == -1 ) {
+static int sendTotalTime( double totalTime ) {
+    struct timespec time;
+
+    time.tv_sec = ( long )totalTime;
+    time.tv_nsec = ( totalTime - time.tv_sec ) * 1000000000;
+    return sendData( &time, sizeof( struct timespec ) );
+}
+
+static int sendData( void *data, size_t size ) {
+    if( write( fileno( stdout ), data, size ) == -1 ) {
         fprintf( stderr, "ERROR: could not print to stdout.\n" );
         return 0;
     } else {
@@ -63,7 +71,7 @@ static int sendCommand( Command_t *command ) {
 }
 #endif
 
-static int processMotorMovement( int32_t steps[] ) {
+static double processMotorMovement( int32_t steps[] ) {
     MotorMovement_t motorMovements[3];
     double totalTime;
     int fastestMotor, i;
@@ -89,7 +97,7 @@ static int processMotorMovement( int32_t steps[] ) {
         return 0;
     }
 
-    return 1;
+    return totalTime;
 }
 
 static double calculateTotalTime( int32_t steps ) {
@@ -149,7 +157,7 @@ static int32_t getAccelerationSteps( double acceleration, double speed ) {
     return fabs( accelerationMovement ) / UINT32_MAX;
 }
 
-static int processHome( void ) {
+static double processHome( void ) {
     Command_t command;
     int32_t acceleration = TO_ALG( accelerationMax );
     int32_t speed = TO_ALG( speedMax );
@@ -162,6 +170,6 @@ static int processHome( void ) {
     }
     sendCommand( &command );
 
-    return 1;
+    return 0;
 }
 

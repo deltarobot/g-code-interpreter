@@ -107,5 +107,9 @@ static int sendCommand( Command_t *command ) {
     expectedCommandCount++;
     return 1;
 }
+
+static int sendTotalTime( double totalTime ) {
+    return 1;
+}
 #endif
 
