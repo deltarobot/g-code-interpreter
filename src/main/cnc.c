@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include "block.h"
@@ -33,7 +34,6 @@ int sendBlock( Block *block ) {
         sendNumberCommands( 3 );
         totalTime = processMotorMovement( block-> steps );
     } else if( block->home ) {
-        sendNumberCommands( 1 );
         totalTime = processHome();
     }
 
@@ -50,6 +50,7 @@ static int sendNumberCommands( char numberCommands ) {
 }
 
 static int sendCommand( Command_t *command ) {
+    fprintf( stderr, "Y acceleration/speed: %d\n", command->command.accelerating.accelerations[1] );
     return sendData( command, sizeof( Command_t ) );
 }
 
@@ -159,16 +160,36 @@ static int32_t getAccelerationSteps( double acceleration, double speed ) {
 
 static double processHome( void ) {
     Command_t command;
+    int32_t accelerationSteps = getAccelerationSteps( accelerationMax, speedMax );
     int32_t acceleration = TO_ALG( accelerationMax );
     int32_t speed = TO_ALG( speedMax );
     int i;
 
-    command.commandType = Home;
     for( i = 0; i < NUM_MOTORS; i++ ) {
-        command.command.home.speeds[i] = speed * homeDirections[0];
-        command.command.home.accelerations[i] = acceleration * homeDirections[0];
+        sendNumberCommands( 3 );
+
+        memset( &command, 0, sizeof( Command_t ) );
+        command.commandType = Accelerating;
+        command.command.accelerating.steps[i] = accelerationSteps;
+        command.command.accelerating.accelerations[i] = acceleration * homeDirections[i];
+        sendCommand( &command );
+
+        memset( &command, 0, sizeof( Command_t ) );
+        command.commandType = Home;
+        command.command.constantSpeed.steps[i] = -1;
+        command.command.constantSpeed.speeds[i] = speed * homeDirections[i];
+        sendCommand( &command );
+
+        memset( &command, 0, sizeof( Command_t ) );
+        command.commandType = Accelerating;
+        command.command.accelerating.steps[i] = accelerationSteps;
+        command.command.accelerating.accelerations[i] = - acceleration * homeDirections[i];
+        sendCommand( &command );
+
+        if( i != NUM_MOTORS - 1 && !sendTotalTime( 0 ) ) {
+            return 0;
+        }
     }
-    sendCommand( &command );
 
     return 0;
 }
