@@ -177,7 +177,7 @@ static double processHome( void ) {
 
         memset( &command, 0, sizeof( Command_t ) );
         command.commandType = Home;
-        command.command.constantSpeed.steps[i] = -1;
+        command.command.constantSpeed.steps[i] = INT32_MAX;
         command.command.constantSpeed.speeds[i] = speed * homeDirections[i];
         sendCommand( &command );
 
