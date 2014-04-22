@@ -35,6 +35,8 @@ int sendBlock( Block *block ) {
         totalTime = processMotorMovement( block-> steps );
     } else if( block->home ) {
         totalTime = processHome();
+    } else {
+        return 1;
     }
 
     if( !sendTotalTime( totalTime ) ) {
@@ -50,7 +52,6 @@ static int sendNumberCommands( char numberCommands ) {
 }
 
 static int sendCommand( Command_t *command ) {
-    fprintf( stderr, "Y acceleration/speed: %d\n", command->command.accelerating.accelerations[1] );
     return sendData( command, sizeof( Command_t ) );
 }
 

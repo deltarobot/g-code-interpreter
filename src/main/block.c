@@ -8,9 +8,10 @@
 
 #define handler(char,literal) case char: return process ## literal ## Word( word + 1, block )
 
-Machine machine;
+static Machine machine;
 
 static void cleanupBlock( Block *block );
+static void updateMachine( Block *block );
 
 static int processWord( char *word, Block *block );
 static int processGWord( char *address, Block *block );
@@ -40,6 +41,7 @@ int processBlock( char *line, Block *block ) {
             }
         }
     }
+    updateMachine( block );
 
     return 1;
 }
@@ -52,6 +54,16 @@ static void cleanupBlock( Block *block ) {
     block->absolute = machine.absolute;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         block->steps[i] = 0;
+    }
+}
+
+static void updateMachine( Block *block ) {
+    int i;
+
+    machine.mode = block->mode;
+    machine.absolute = block->absolute;
+    for( i = 0; i < NUM_MOTORS; i++ ) {
+        machine.steps[i] += block->steps[i];
     }
 }
 
@@ -69,6 +81,7 @@ static int processWord( char *word, Block *block ) {
 
 static int processGWord( char *address, Block *block ) {
     int intAddress = strtol( address, NULL, 10 );
+    int i;
 
     switch( intAddress ) {
         case 0:
@@ -85,12 +98,20 @@ static int processGWord( char *address, Block *block ) {
             break;
         case 28:
             block->home = 1;
+            for( i = 0; i < NUM_MOTORS; i++ ) {
+                machine.steps[i] = 0;
+            }
             break;
         case 90:
             block->absolute = 1;
             break;
         case 91:
             block->absolute = 0;
+            break;
+        case 100:
+            for( i = 0; i < NUM_MOTORS; i++ ) {
+                machine.steps[i] = 0;
+            }
             break;
         default:
             fprintf( stderr, "ERROR: Unknown address for G word: \"%d\".\n", intAddress );

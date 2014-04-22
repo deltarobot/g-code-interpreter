@@ -22,8 +22,6 @@ struct Block {
     int32_t steps[NUM_MOTORS];
 };
 
-extern Machine machine;
-
 extern int initializeMachine( void );
 extern int processBlock( char *line, Block *block );
 
