@@ -13,7 +13,8 @@
 #include "configure.h"
 
 #define FREQUENCY 50000
-#define TO_ALG(x) x * UINT32_MAX / FREQUENCY
+#define SPEED_CONVERTER(x) ( x * UINT32_MAX / FREQUENCY )
+#define ACCELERATION_CONVERTER(x) ( SPEED_CONVERTER( x ) / ( FREQUENCY - 1 ) )
 
 static int sendNumberCommands( char numberCommands );
 static int sendCommand( Command_t *command );
@@ -84,6 +85,8 @@ static int processMotorMovement( int32_t steps[] ) {
 
     for( i = 0; i < NUM_MOTORS; i++ ) {
         calculateMotorMovement( steps[fastestMotor], steps[i], &motorMovements[i] );
+        motorMovements[i].acceleration = ACCELERATION_CONVERTER( motorMovements[i].acceleration );
+        motorMovements[i].speed = SPEED_CONVERTER( motorMovements[i].speed );
     }
 
 
@@ -93,6 +96,7 @@ static int processMotorMovement( int32_t steps[] ) {
         return 0;
     }
 
+    fprintf( stderr, "Will take %f seconds.\n", totalTime );
     return sendTotalTime( totalTime );
 }
 
@@ -119,7 +123,7 @@ static int sendMotorMovement( MotorMovement_t motorMovements[], int32_t commandT
     command.commandType = commandType;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         steps = *( int32_t* )( ( char* )&motorMovements[i] + stepOffset );
-        movement = TO_ALG( *( double* )( ( char* )&motorMovements[i] + doubleOffset ) );
+        movement = *( double* )( ( char* )&motorMovements[i] + doubleOffset );
         command.command.accelerating.steps[i] = steps;
         command.command.accelerating.accelerations[i] = sign * movement;
     }
@@ -147,20 +151,17 @@ static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMoveme
 }
 
 static int32_t getAccelerationSteps( double acceleration, double speed ) {
-    double accelerationInterrupts = speed / acceleration;
-    double algorithmAcceleration = TO_ALG( acceleration );
-    double accelerationMovement = algorithmAcceleration * accelerationInterrupts * ( accelerationInterrupts + 1 ) / 2;
-    fprintf( stderr, "Will take: %d steps\n", ( int ) ( fabs( accelerationMovement ) / UINT32_MAX ) );
-    return fabs( accelerationMovement ) / UINT32_MAX;
+    return 0.5 * speed * speed / fabs( acceleration );
 }
 
 static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double speedDouble ) {
     Command_t command;
     int32_t accelerationSteps = getAccelerationSteps( accelerationDouble, speedDouble );
-    int32_t acceleration = TO_ALG( accelerationDouble );
-    int32_t speed = TO_ALG( speedMax );
+    int32_t acceleration = ACCELERATION_CONVERTER( accelerationDouble );
+    int32_t speed = SPEED_CONVERTER( speedDouble );
     int i;
 
+    fprintf( stderr, "Steps: %d\n", accelerationSteps );
     for( i = 0; i < NUM_MOTORS; i++ ) {
         sendNumberCommands( 3 );
 
@@ -194,5 +195,6 @@ static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double
 static int processHome( void ) {
     sendHomeCommand( 0, accelerationMax, speedMax );
     sendHomeCommand( 1, -accelerationMax, -speedMax );
+    sendHomeCommand( 0, accelerationMax, speedMax / 20 );
     return 1;
 }

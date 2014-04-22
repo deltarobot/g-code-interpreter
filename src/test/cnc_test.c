@@ -82,10 +82,10 @@ static void processMotorMovementTest( CuTest *tc ) {
 CuSuite* CuGetSuite( void ) {
     CuSuite* suite = CuSuiteNew();
 
-    SUITE_ADD_TEST( suite, getAccelerationStepsTest );
+    /*SUITE_ADD_TEST( suite, getAccelerationStepsTest );
     SUITE_ADD_TEST( suite, calculateTotalTimeTest );
     SUITE_ADD_TEST( suite, calculateMotorMovementTest );
-    SUITE_ADD_TEST( suite, processMotorMovementTest );
+    SUITE_ADD_TEST( suite, processMotorMovementTest );*/
 
     return suite;
 }
