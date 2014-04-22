@@ -20,27 +20,21 @@ static int sendCommand( Command_t *command );
 static int sendTotalTime( double time );
 static int sendData( void *data, size_t size );
 
-static double processMotorMovement( int32_t steps[] );
+static int processMotorMovement( int32_t steps[] );
 static double calculateTotalTime( int32_t steps );
-static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset, size_t doubleOffset, int sign );
+static int sendMotorMovement( MotorMovement_t motorMovements[], int32_t commandType, size_t stepOffset, size_t doubleOffset, int sign );
 static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMovement_t *motorMovement );
 static int32_t getAccelerationSteps( double acceleration, double speed );
 
-static double processHome( void );
+static int processHome( void );
 
 int sendBlock( Block *block ) {
-    double totalTime;
+
     if( block->steps[0] || block->steps[1] || block->steps[2] ) {
         sendNumberCommands( 3 );
-        totalTime = processMotorMovement( block-> steps );
+        return processMotorMovement( block-> steps );
     } else if( block->home ) {
-        totalTime = processHome();
-    } else {
-        return 1;
-    }
-
-    if( !sendTotalTime( totalTime ) ) {
-        return 0;
+        return processHome();
     }
 
     return 1;
@@ -73,7 +67,7 @@ static int sendData( void *data, size_t size ) {
 }
 #endif
 
-static double processMotorMovement( int32_t steps[] ) {
+static int processMotorMovement( int32_t steps[] ) {
     MotorMovement_t motorMovements[3];
     double totalTime;
     int fastestMotor, i;
@@ -99,7 +93,7 @@ static double processMotorMovement( int32_t steps[] ) {
         return 0;
     }
 
-    return totalTime;
+    return sendTotalTime( totalTime );
 }
 
 static double calculateTotalTime( int32_t steps ) {
@@ -117,7 +111,7 @@ static double calculateTotalTime( int32_t steps ) {
     return accelerationTime + constantSpeedTime;
 }
 
-static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset, size_t doubleOffset, int sign ) {
+static int sendMotorMovement( MotorMovement_t motorMovements[], int32_t commandType, size_t stepOffset, size_t doubleOffset, int sign ) {
     Command_t command;
     int i;
     int32_t steps, movement;
@@ -156,13 +150,14 @@ static int32_t getAccelerationSteps( double acceleration, double speed ) {
     double accelerationInterrupts = speed / acceleration;
     double algorithmAcceleration = TO_ALG( acceleration );
     double accelerationMovement = algorithmAcceleration * accelerationInterrupts * ( accelerationInterrupts + 1 ) / 2;
+    fprintf( stderr, "Will take: %d steps\n", ( int ) ( fabs( accelerationMovement ) / UINT32_MAX ) );
     return fabs( accelerationMovement ) / UINT32_MAX;
 }
 
-static double processHome( void ) {
+static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double speedDouble ) {
     Command_t command;
-    int32_t accelerationSteps = getAccelerationSteps( accelerationMax, speedMax );
-    int32_t acceleration = TO_ALG( accelerationMax );
+    int32_t accelerationSteps = getAccelerationSteps( accelerationDouble, speedDouble );
+    int32_t acceleration = TO_ALG( accelerationDouble );
     int32_t speed = TO_ALG( speedMax );
     int i;
 
@@ -176,7 +171,7 @@ static double processHome( void ) {
         sendCommand( &command );
 
         memset( &command, 0, sizeof( Command_t ) );
-        command.commandType = Home;
+        command.commandType = lookForNoHome ? ReverseHome : Home;
         command.command.constantSpeed.steps[i] = INT32_MAX;
         command.command.constantSpeed.speeds[i] = speed * homeDirections[i];
         sendCommand( &command );
@@ -187,11 +182,17 @@ static double processHome( void ) {
         command.command.accelerating.accelerations[i] = - acceleration * homeDirections[i];
         sendCommand( &command );
 
-        if( i != NUM_MOTORS - 1 && !sendTotalTime( 0 ) ) {
+        if( !sendTotalTime( 0 ) ) {
             return 0;
         }
     }
 
-    return 0;
+    return 1;
 }
 
+
+static int processHome( void ) {
+    sendHomeCommand( 0, accelerationMax, speedMax );
+    sendHomeCommand( 1, -accelerationMax, -speedMax );
+    return 1;
+}
