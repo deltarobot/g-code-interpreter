@@ -1,4 +1,5 @@
-#define NUM_MOTORS 3
+#define NUM_MOTORS 4
+#define NUM_WORK_HEADS 1
 
 enum CommandType {
     NoOp = 0,

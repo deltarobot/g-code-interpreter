@@ -33,7 +33,7 @@ int sendBlock( Block *block ) {
 
     if( block->steps[0] || block->steps[1] || block->steps[2] ) {
         sendNumberCommands( 3 );
-        return processMotorMovement( block-> steps );
+        return processMotorMovement( block->steps );
     } else if( block->home ) {
         return processHome();
     }
@@ -69,16 +69,15 @@ static int sendData( void *data, size_t size ) {
 #endif
 
 static int processMotorMovement( int32_t steps[] ) {
-    MotorMovement_t motorMovements[3];
+    MotorMovement_t motorMovements[NUM_MOTORS];
     double totalTime;
     int fastestMotor, i;
 
-    if( abs( steps[0] ) >= abs( steps[1] ) && abs( steps[0] ) >= abs( steps[2] ) ) {
-        fastestMotor = 0;
-    } else if( abs( steps[1] ) > abs( steps[2] ) ) {
-        fastestMotor = 1;
-    } else {
-        fastestMotor = 2;
+    fastestMotor = 0;
+    for( i = 1; i < NUM_MOTORS; i++ ) {
+        if( abs( steps[i] ) > abs( steps[fastestMotor] ) ) {
+            fastestMotor = i;
+        }
     }
 
     totalTime = calculateTotalTime( abs( steps[fastestMotor] ) );
@@ -160,7 +159,7 @@ static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double
     int32_t speed = SPEED_CONVERTER( speedDouble );
     int i;
 
-    for( i = 0; i < NUM_MOTORS; i++ ) {
+    for( i = 0; i < NUM_MOTORS - NUM_WORK_HEADS; i++ ) {
         sendNumberCommands( 3 );
 
         memset( &command, 0, sizeof( Command_t ) );
@@ -193,6 +192,6 @@ static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double
 static int processHome( void ) {
     sendHomeCommand( 0, accelerationMax, speedMax );
     sendHomeCommand( 1, -accelerationMax, -speedMax );
-    sendHomeCommand( 0, accelerationMax, speedMax / 20 );
+    sendHomeCommand( 0, accelerationMax, 500 );
     return 1;
 }
