@@ -94,6 +94,7 @@ static int processMotorMovement( int32_t steps[] ) {
     totalTime = calculateTotalTime( abs( steps[fastestMotor] ) );
 
     for( i = 0; i < NUM_MOTORS; i++ ) {
+        steps[i] *= invert[i];
         calculateMotorMovement( steps[fastestMotor], steps[i], &motorMovements[i] );
         motorMovements[i].acceleration = ACCELERATION_CONVERTER( motorMovements[i].acceleration );
         motorMovements[i].speed = SPEED_CONVERTER( motorMovements[i].speed );

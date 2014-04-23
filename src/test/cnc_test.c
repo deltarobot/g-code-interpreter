@@ -7,6 +7,7 @@ double accelerationMax = 100;
 double speedMax = 10000;
 double spindleDutyCycle = 12;
 int homeDirections[NUM_MOTORS];
+int invert[NUM_MOTORS] = {1, 1, 1, 1};
 
 static Command_t expectedCommands[3];
 static int expectedCommandCount;

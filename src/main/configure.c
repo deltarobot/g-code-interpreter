@@ -23,6 +23,7 @@ double speedMax = 1;
 int inchMeasurements = 0;
 double spindleDutyCycle = 1;
 int homeDirections[NUM_MOTORS] = {-1, -1, -1};
+int invert[NUM_MOTORS] = {1, 1, 1, 1};
 
 static int processLine( char *line );
 static int readProperty( char *propertyName, char *line, ReturnType returnType, ReturnValue *returnValue );
@@ -97,6 +98,14 @@ static int processLine( char *line ) {
         homeDirections[1] = sign( returnValue.intReturn );
     } else if( readProperty( "home.direction.z=", line, Int, &returnValue ) ) {
         homeDirections[2] = sign( returnValue.intReturn );
+    } else if( readProperty( "invert.x=", line, Int, &returnValue ) ) {
+        invert[0] = sign( returnValue.intReturn );
+    } else if( readProperty( "invert.y=", line, Int, &returnValue ) ) {
+        invert[1] = sign( returnValue.intReturn );
+    } else if( readProperty( "invert.z=", line, Int, &returnValue ) ) {
+        invert[2] = sign( returnValue.intReturn );
+    } else if( readProperty( "invert.a=", line, Int, &returnValue ) ) {
+        invert[3] = sign( returnValue.intReturn );
     } else if( readProperty( "duty.cycle=", line, Double, &returnValue ) ) {
         if( returnValue.doubleReturn < 0 || returnValue.doubleReturn > 100 ) {
             fprintf( stderr, "ERROR: duty.cycle must be between 0 and 100.\n" );
