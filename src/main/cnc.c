@@ -81,7 +81,7 @@ static int processMotorMovement( int32_t steps[] ) {
         fastestMotor = 2;
     }
 
-    totalTime = calculateTotalTime( steps[fastestMotor] );
+    totalTime = calculateTotalTime( abs( steps[fastestMotor] ) );
 
     for( i = 0; i < NUM_MOTORS; i++ ) {
         calculateMotorMovement( steps[fastestMotor], steps[i], &motorMovements[i] );
@@ -96,21 +96,20 @@ static int processMotorMovement( int32_t steps[] ) {
         return 0;
     }
 
-    fprintf( stderr, "Will take %f seconds.\n", totalTime );
     return sendTotalTime( totalTime );
 }
 
 static double calculateTotalTime( int32_t steps ) {
-    int32_t accelerationSteps = getAccelerationSteps( accelerationMax, speedMax );
+    int32_t actualAccelerationSteps, accelerationSteps = getAccelerationSteps( accelerationMax, speedMax );
     double accelerationTime, constantSpeedTime;
 
     if( accelerationSteps * 2 > steps ) {
-        accelerationSteps = steps / 2;
+        actualAccelerationSteps = steps;
     } else {
-        accelerationSteps *= 2;
+        actualAccelerationSteps = accelerationSteps * 2;
     }
-    steps -= 2 * accelerationSteps;
-    accelerationTime = 2 * speedMax / accelerationMax / FREQUENCY;
+    steps -= actualAccelerationSteps;
+    accelerationTime = speedMax / accelerationMax * ( ( double )actualAccelerationSteps / accelerationSteps );
     constantSpeedTime = steps / speedMax;
     return accelerationTime + constantSpeedTime;
 }
@@ -161,7 +160,6 @@ static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double
     int32_t speed = SPEED_CONVERTER( speedDouble );
     int i;
 
-    fprintf( stderr, "Steps: %d\n", accelerationSteps );
     for( i = 0; i < NUM_MOTORS; i++ ) {
         sendNumberCommands( 3 );
 
