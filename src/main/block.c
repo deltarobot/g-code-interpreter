@@ -18,6 +18,7 @@ static int processGWord( char *address, Block *block );
 static int processXWord( char *address, Block *block );
 static int processYWord( char *address, Block *block );
 static int processZWord( char *address, Block *block );
+static int processAWord( char *address, Block *block );
 static void calculateAbsoluteSteps( char *address, Block *block, int32_t oldSteps, int32_t *newSteps );
 
 int initializeMachine( void ) {
@@ -73,6 +74,7 @@ static int processWord( char *word, Block *block ) {
         handler( 'X', X );
         handler( 'Y', Y );
         handler( 'Z', Z );
+        handler( 'A', A );
         default:
             fprintf( stderr, "ERROR: Unknown word: \"%c\".\n", word[0] );
             return 0;
@@ -133,6 +135,11 @@ static int processYWord( char *address, Block *block ) {
 
 static int processZWord( char *address, Block *block ) {
     calculateAbsoluteSteps( address, block, machine.steps[2], &block->steps[2] );
+    return 1;
+}
+
+static int processAWord( char *address, Block *block ) {
+    calculateAbsoluteSteps( address, block, machine.steps[3], &block->steps[3] );
     return 1;
 }
 

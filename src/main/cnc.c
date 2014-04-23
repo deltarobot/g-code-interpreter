@@ -30,8 +30,15 @@ static int32_t getAccelerationSteps( double acceleration, double speed );
 static int processHome( void );
 
 int sendBlock( Block *block ) {
+    int hasSteps;
 
-    if( block->steps[0] || block->steps[1] || block->steps[2] ) {
+    for( hasSteps = 0; hasSteps < NUM_MOTORS; hasSteps++ ) {
+        if( block->steps[hasSteps] ) {
+            break;
+        }
+    }
+
+    if( hasSteps < NUM_MOTORS ) {
         sendNumberCommands( 3 );
         return processMotorMovement( block->steps );
     } else if( block->home ) {
