@@ -84,7 +84,7 @@ static int processWord( char *word, Block *block ) {
         handler( 'A', A );
         default:
             fprintf( stderr, "ERROR: Unknown word: \"%c\".\n", word[0] );
-            return 0;
+            return 1;
     }
 }
 

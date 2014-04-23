@@ -24,7 +24,7 @@ static void processBlockTest( CuTest* tc ) {
     Block block;
 
     CuAssert( tc, "Good block.", processBlock( "G00X1.234Y342", &block ) );
-    CuAssert( tc, "Bad block with unknown word.", !processBlock( "G00X1.234B343", &block ) );
+    CuAssert( tc, "Bad block with unknown word.", processBlock( "G00X1.234B343", &block ) );
 }
 
 static void processGWordTest( CuTest* tc ) {
