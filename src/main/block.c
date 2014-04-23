@@ -15,6 +15,7 @@ static void updateMachine( Block *block );
 
 static int processWord( char *word, Block *block );
 static int processGWord( char *address, Block *block );
+static int processMWord( char *address, Block *block );
 static int processXWord( char *address, Block *block );
 static int processYWord( char *address, Block *block );
 static int processZWord( char *address, Block *block );
@@ -26,6 +27,7 @@ int initializeMachine( void ) {
 
     machine.mode = Rapids;
     machine.absolute = 1;
+    machine.spindleForwardDirection = 0;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         machine.steps[i] = 0;
     }
@@ -53,6 +55,9 @@ static void cleanupBlock( Block *block ) {
     block->mode = machine.mode;
     block->home = 0;
     block->absolute = machine.absolute;
+    block->spindleOn = 0;
+    block->spindleOff = 0;
+    block->spindleForwardDirection = machine.spindleForwardDirection;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         block->steps[i] = 0;
     }
@@ -63,6 +68,7 @@ static void updateMachine( Block *block ) {
 
     machine.mode = block->mode;
     machine.absolute = block->absolute;
+    machine.spindleForwardDirection = block->spindleForwardDirection;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         machine.steps[i] += block->steps[i];
     }
@@ -71,6 +77,7 @@ static void updateMachine( Block *block ) {
 static int processWord( char *word, Block *block ) {
     switch( word[0] ) {
         handler( 'G', G );
+        handler( 'M', M );
         handler( 'X', X );
         handler( 'Y', Y );
         handler( 'Z', Z );
@@ -117,6 +124,29 @@ static int processGWord( char *address, Block *block ) {
             break;
         default:
             fprintf( stderr, "ERROR: Unknown address for G word: \"%d\".\n", intAddress );
+            return 0;
+    }
+
+    return 1;
+}
+
+static int processMWord( char *address, Block *block ) {
+    int intAddress = strtol( address, NULL, 10 );
+
+    switch( intAddress ) {
+        case 3:
+            block->spindleOn = 1;
+            block->spindleForwardDirection = 1;
+            break;
+        case 4:
+            block->spindleOn = 1;
+            block->spindleForwardDirection = 0;
+            break;
+        case 5:
+            block->spindleOff = 1;
+            break;
+        default:
+            fprintf( stderr, "ERROR: Unknown address for M word: \"%d\".\n", intAddress );
             return 0;
     }
 

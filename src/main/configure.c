@@ -21,6 +21,7 @@ double stepRatio = 1.0;
 double accelerationMax = 1;
 double speedMax = 1;
 int inchMeasurements = 0;
+double spindleDutyCycle = 1;
 int homeDirections[NUM_MOTORS] = {-1, -1, -1};
 
 static int processLine( char *line );
@@ -96,6 +97,13 @@ static int processLine( char *line ) {
         homeDirections[1] = sign( returnValue.intReturn );
     } else if( readProperty( "home.direction.z=", line, Int, &returnValue ) ) {
         homeDirections[2] = sign( returnValue.intReturn );
+    } else if( readProperty( "duty.cycle=", line, Double, &returnValue ) ) {
+        if( returnValue.doubleReturn < 0 || returnValue.doubleReturn > 100 ) {
+            fprintf( stderr, "ERROR: duty.cycle must be between 0 and 100.\n" );
+            return 0;
+        } else {
+            spindleDutyCycle = returnValue.doubleReturn;
+        }
     } else {
         fprintf( stderr, "ERROR: Unknown configuration line: %s", line );
         return 0;

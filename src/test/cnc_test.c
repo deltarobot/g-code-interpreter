@@ -5,6 +5,7 @@
 
 double accelerationMax = 100;
 double speedMax = 10000;
+double spindleDutyCycle = 12;
 int homeDirections[NUM_MOTORS];
 
 static Command_t expectedCommands[3];

@@ -28,6 +28,7 @@ static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMoveme
 static int32_t getAccelerationSteps( double acceleration, double speed );
 
 static int processHome( void );
+static int processSpindleChange( int on, int forwardDirection );
 
 int sendBlock( Block *block ) {
     int hasSteps;
@@ -43,6 +44,9 @@ int sendBlock( Block *block ) {
         return processMotorMovement( block->steps );
     } else if( block->home ) {
         return processHome();
+    } else if( block->spindleOn || block->spindleOff ) {
+        sendNumberCommands( 1 );
+        return processSpindleChange( block->spindleOn, block->spindleForwardDirection );
     }
 
     return 1;
@@ -173,19 +177,25 @@ static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double
         command.commandType = Accelerating;
         command.command.accelerating.steps[i] = accelerationSteps;
         command.command.accelerating.accelerations[i] = acceleration * homeDirections[i];
-        sendCommand( &command );
+        if( !sendCommand( &command ) ) {
+            return 0;
+        }
 
         memset( &command, 0, sizeof( Command_t ) );
         command.commandType = lookForNoHome ? ReverseHome : Home;
         command.command.constantSpeed.steps[i] = INT32_MAX;
         command.command.constantSpeed.speeds[i] = speed * homeDirections[i];
-        sendCommand( &command );
+        if( !sendCommand( &command ) ) {
+            return 0;
+        }
 
         memset( &command, 0, sizeof( Command_t ) );
         command.commandType = Accelerating;
         command.command.accelerating.steps[i] = accelerationSteps;
         command.command.accelerating.accelerations[i] = - acceleration * homeDirections[i];
-        sendCommand( &command );
+        if( !sendCommand( &command ) ) {
+            return 0;
+        }
 
         if( !sendTotalTime( 0 ) ) {
             return 0;
@@ -201,4 +211,15 @@ static int processHome( void ) {
     sendHomeCommand( 1, -accelerationMax, -speedMax );
     sendHomeCommand( 0, accelerationMax, 500 );
     return 1;
+}
+
+static int processSpindleChange( int on, int forwardDirection ) {
+    Command_t command;
+
+    command.commandType = WorkHead;
+    command.command.workHead.dutyCycle = on ? spindleDutyCycle : 0;
+    command.command.workHead.forwardDirection = forwardDirection;
+    sendCommand( &command );
+
+    return sendTotalTime( 0 );
 }
