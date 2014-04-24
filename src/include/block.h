@@ -22,6 +22,7 @@ struct Block {
     char home;
     char spindleOn, spindleOff, spindleForwardDirection;
     int32_t steps[NUM_MOTORS];
+    char *lcdString;
 };
 
 extern int initializeMachine( void );

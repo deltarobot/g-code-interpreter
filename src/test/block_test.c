@@ -31,7 +31,7 @@ static void processGWordTest( CuTest* tc ) {
     Block block;
 
     CuAssert( tc, "Shouldn't fail on good addresses.", processBlock( "G00G01", &block ) );
-    CuAssert( tc, "Should fail on bad address.", !processBlock( "G02", &block ) );
+    CuAssert( tc, "Should ignore bad address.", processBlock( "G02", &block ) );
 }
 
 static void processPositionTest( CuTest *tc ) {

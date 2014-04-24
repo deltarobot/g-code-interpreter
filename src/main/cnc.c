@@ -29,6 +29,7 @@ static int32_t getAccelerationSteps( double acceleration, double speed );
 
 static int processHome( void );
 static int processSpindleChange( int on, int forwardDirection );
+static int processLcdString( char *lcdString );
 
 int sendBlock( Block *block ) {
     int hasSteps;
@@ -47,6 +48,9 @@ int sendBlock( Block *block ) {
     } else if( block->spindleOn || block->spindleOff ) {
         sendNumberCommands( 1 );
         return processSpindleChange( block->spindleOn, block->spindleForwardDirection );
+    } else if( block->lcdString ) {
+        sendNumberCommands( 1 );
+        return processLcdString( block->lcdString );
     }
 
     return 1;
@@ -220,6 +224,24 @@ static int processSpindleChange( int on, int forwardDirection ) {
     command.commandType = WorkHead;
     command.command.workHead.dutyCycle = on ? spindleDutyCycle : 0;
     command.command.workHead.forwardDirection = forwardDirection;
+    sendCommand( &command );
+
+    return sendTotalTime( 0 );
+}
+
+static int processLcdString( char *lcdString ) {
+    Command_t command;
+    size_t i;
+
+    command.commandType = LcdString;
+    for( i = 0; i < sizeof( command.command ) - 1; i++ ) {
+        if( lcdString[i] == '\0' || lcdString[i] == '\r' || lcdString[i] == '\n' ) {
+            break;
+        }
+        ( ( char* )&command.command )[i] = lcdString[i];
+    }
+    ( ( char* )&command.command )[i] = '\0';
+
     sendCommand( &command );
 
     return sendTotalTime( 0 );

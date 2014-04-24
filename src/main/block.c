@@ -37,7 +37,7 @@ int initializeMachine( void ) {
 int processBlock( char *line, Block *block ) {
     cleanupBlock( block );
 
-    for( ; *line != '\0'; line++ ) {
+    for( ; *line != '\0' && block->lcdString == NULL; line++ ) {
         if( isupper( ( int )*line ) ) {
             if( !processWord( line, block ) ) {
                 return 0;
@@ -61,6 +61,7 @@ static void cleanupBlock( Block *block ) {
     for( i = 0; i < NUM_MOTORS; i++ ) {
         block->steps[i] = 0;
     }
+    block->lcdString = NULL;
 }
 
 static void updateMachine( Block *block ) {
@@ -122,9 +123,12 @@ static int processGWord( char *address, Block *block ) {
                 machine.steps[i] = 0;
             }
             break;
+        case 101:
+            block->lcdString = address + 3;
+            break;
         default:
             fprintf( stderr, "ERROR: Unknown address for G word: \"%d\".\n", intAddress );
-            return 0;
+            return 1;
     }
 
     return 1;

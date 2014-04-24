@@ -7,7 +7,8 @@ enum CommandType {
     Accelerating = 2,
     Home = 3,
     ReverseHome = 4,
-    WorkHead = 5
+    WorkHead = 5,
+    LcdString = 6
 };
 
 typedef struct Accelerating_t Accelerating_t;
