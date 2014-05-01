@@ -5,7 +5,9 @@ extern double stepRatio;
 extern double accelerationMax;
 extern double speedMax;
 extern int inchMeasurements;
+extern double spindleDutyCycle;
 extern int homeDirections[];
+extern int invert[];
 
 extern int configure( char *filename );
 

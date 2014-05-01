@@ -8,15 +8,18 @@
 
 #define handler(char,literal) case char: return process ## literal ## Word( word + 1, block )
 
-Machine machine;
+static Machine machine;
 
 static void cleanupBlock( Block *block );
+static void updateMachine( Block *block );
 
 static int processWord( char *word, Block *block );
 static int processGWord( char *address, Block *block );
+static int processMWord( char *address, Block *block );
 static int processXWord( char *address, Block *block );
 static int processYWord( char *address, Block *block );
 static int processZWord( char *address, Block *block );
+static int processAWord( char *address, Block *block );
 static void calculateAbsoluteSteps( char *address, Block *block, int32_t oldSteps, int32_t *newSteps );
 
 int initializeMachine( void ) {
@@ -24,6 +27,7 @@ int initializeMachine( void ) {
 
     machine.mode = Rapids;
     machine.absolute = 1;
+    machine.spindleForwardDirection = 0;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         machine.steps[i] = 0;
     }
@@ -33,13 +37,14 @@ int initializeMachine( void ) {
 int processBlock( char *line, Block *block ) {
     cleanupBlock( block );
 
-    for( ; *line != '\0'; line++ ) {
+    for( ; *line != '\0' && block->lcdString == NULL; line++ ) {
         if( isupper( ( int )*line ) ) {
             if( !processWord( line, block ) ) {
                 return 0;
             }
         }
     }
+    updateMachine( block );
 
     return 1;
 }
@@ -50,25 +55,43 @@ static void cleanupBlock( Block *block ) {
     block->mode = machine.mode;
     block->home = 0;
     block->absolute = machine.absolute;
+    block->spindleOn = 0;
+    block->spindleOff = 0;
+    block->spindleForwardDirection = machine.spindleForwardDirection;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         block->steps[i] = 0;
+    }
+    block->lcdString = NULL;
+}
+
+static void updateMachine( Block *block ) {
+    int i;
+
+    machine.mode = block->mode;
+    machine.absolute = block->absolute;
+    machine.spindleForwardDirection = block->spindleForwardDirection;
+    for( i = 0; i < NUM_MOTORS; i++ ) {
+        machine.steps[i] += block->steps[i];
     }
 }
 
 static int processWord( char *word, Block *block ) {
     switch( word[0] ) {
         handler( 'G', G );
+        handler( 'M', M );
         handler( 'X', X );
         handler( 'Y', Y );
         handler( 'Z', Z );
+        handler( 'A', A );
         default:
             fprintf( stderr, "ERROR: Unknown word: \"%c\".\n", word[0] );
-            return 0;
+            return 1;
     }
 }
 
 static int processGWord( char *address, Block *block ) {
     int intAddress = strtol( address, NULL, 10 );
+    int i;
 
     switch( intAddress ) {
         case 0:
@@ -85,6 +108,9 @@ static int processGWord( char *address, Block *block ) {
             break;
         case 28:
             block->home = 1;
+            for( i = 0; i < NUM_MOTORS; i++ ) {
+                machine.steps[i] = 0;
+            }
             break;
         case 90:
             block->absolute = 1;
@@ -92,8 +118,39 @@ static int processGWord( char *address, Block *block ) {
         case 91:
             block->absolute = 0;
             break;
+        case 100:
+            for( i = 0; i < NUM_MOTORS; i++ ) {
+                machine.steps[i] = 0;
+            }
+            break;
+        case 101:
+            block->lcdString = address + 3;
+            break;
         default:
             fprintf( stderr, "ERROR: Unknown address for G word: \"%d\".\n", intAddress );
+            return 1;
+    }
+
+    return 1;
+}
+
+static int processMWord( char *address, Block *block ) {
+    int intAddress = strtol( address, NULL, 10 );
+
+    switch( intAddress ) {
+        case 3:
+            block->spindleOn = 1;
+            block->spindleForwardDirection = 1;
+            break;
+        case 4:
+            block->spindleOn = 1;
+            block->spindleForwardDirection = 0;
+            break;
+        case 5:
+            block->spindleOff = 1;
+            break;
+        default:
+            fprintf( stderr, "ERROR: Unknown address for M word: \"%d\".\n", intAddress );
             return 0;
     }
 
@@ -112,6 +169,11 @@ static int processYWord( char *address, Block *block ) {
 
 static int processZWord( char *address, Block *block ) {
     calculateAbsoluteSteps( address, block, machine.steps[2], &block->steps[2] );
+    return 1;
+}
+
+static int processAWord( char *address, Block *block ) {
+    calculateAbsoluteSteps( address, block, machine.steps[3], &block->steps[3] );
     return 1;
 }
 

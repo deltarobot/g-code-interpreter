@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -92,6 +93,11 @@ static int openPipe( char *filename, int fdReplace, mode_t mode ) {
     close( fdReplace );
     dup( fd );
     close( fd );
+    if( fdReplace == 1 ) {
+        if( fcntl( fdReplace, F_SETPIPE_SZ, 1048576 ) == -1 ) {
+            fprintf( stderr, "ERROR: Could not set the pipe size.\n" );
+        }
+    }
 
     return 1;
 }

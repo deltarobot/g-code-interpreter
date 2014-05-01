@@ -13,32 +13,44 @@
 #include "configure.h"
 
 #define FREQUENCY 50000
-#define TO_ALG(x) x * UINT32_MAX / FREQUENCY
+#define SPEED_CONVERTER(x) ( x * UINT32_MAX / FREQUENCY )
+#define ACCELERATION_CONVERTER(x) ( SPEED_CONVERTER( x ) / ( FREQUENCY - 1 ) )
 
 static int sendNumberCommands( char numberCommands );
 static int sendCommand( Command_t *command );
 static int sendTotalTime( double time );
 static int sendData( void *data, size_t size );
 
-static double processMotorMovement( int32_t steps[] );
+static int processMotorMovement( int32_t steps[] );
 static double calculateTotalTime( int32_t steps );
-static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset, size_t doubleOffset, int sign );
+static int sendMotorMovement( MotorMovement_t motorMovements[], int32_t commandType, size_t stepOffset, size_t doubleOffset, int sign );
 static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMovement_t *motorMovement );
 static int32_t getAccelerationSteps( double acceleration, double speed );
 
-static double processHome( void );
+static int processHome( void );
+static int processSpindleChange( int on, int forwardDirection );
+static int processLcdString( char *lcdString );
 
 int sendBlock( Block *block ) {
-    double totalTime;
-    if( block->steps[0] || block->steps[1] || block->steps[2] ) {
-        sendNumberCommands( 3 );
-        totalTime = processMotorMovement( block-> steps );
-    } else if( block->home ) {
-        totalTime = processHome();
+    int hasSteps;
+
+    for( hasSteps = 0; hasSteps < NUM_MOTORS; hasSteps++ ) {
+        if( block->steps[hasSteps] ) {
+            break;
+        }
     }
 
-    if( !sendTotalTime( totalTime ) ) {
-        return 0;
+    if( hasSteps < NUM_MOTORS ) {
+        sendNumberCommands( 3 );
+        return processMotorMovement( block->steps );
+    } else if( block->home ) {
+        return processHome();
+    } else if( block->spindleOn || block->spindleOff ) {
+        sendNumberCommands( 1 );
+        return processSpindleChange( block->spindleOn, block->spindleForwardDirection );
+    } else if( block->lcdString ) {
+        sendNumberCommands( 1 );
+        return processLcdString( block->lcdString );
     }
 
     return 1;
@@ -50,7 +62,6 @@ static int sendNumberCommands( char numberCommands ) {
 }
 
 static int sendCommand( Command_t *command ) {
-    fprintf( stderr, "Y acceleration/speed: %d\n", command->command.accelerating.accelerations[1] );
     return sendData( command, sizeof( Command_t ) );
 }
 
@@ -72,23 +83,25 @@ static int sendData( void *data, size_t size ) {
 }
 #endif
 
-static double processMotorMovement( int32_t steps[] ) {
-    MotorMovement_t motorMovements[3];
+static int processMotorMovement( int32_t steps[] ) {
+    MotorMovement_t motorMovements[NUM_MOTORS];
     double totalTime;
     int fastestMotor, i;
 
-    if( abs( steps[0] ) >= abs( steps[1] ) && abs( steps[0] ) >= abs( steps[2] ) ) {
-        fastestMotor = 0;
-    } else if( abs( steps[1] ) > abs( steps[2] ) ) {
-        fastestMotor = 1;
-    } else {
-        fastestMotor = 2;
+    fastestMotor = 0;
+    for( i = 1; i < NUM_MOTORS; i++ ) {
+        if( abs( steps[i] ) > abs( steps[fastestMotor] ) ) {
+            fastestMotor = i;
+        }
     }
 
-    totalTime = calculateTotalTime( steps[fastestMotor] );
+    totalTime = calculateTotalTime( abs( steps[fastestMotor] ) );
 
     for( i = 0; i < NUM_MOTORS; i++ ) {
+        steps[i] *= invert[i];
         calculateMotorMovement( steps[fastestMotor], steps[i], &motorMovements[i] );
+        motorMovements[i].acceleration = ACCELERATION_CONVERTER( motorMovements[i].acceleration );
+        motorMovements[i].speed = SPEED_CONVERTER( motorMovements[i].speed );
     }
 
 
@@ -98,25 +111,25 @@ static double processMotorMovement( int32_t steps[] ) {
         return 0;
     }
 
-    return totalTime;
+    return sendTotalTime( totalTime );
 }
 
 static double calculateTotalTime( int32_t steps ) {
-    int32_t accelerationSteps = getAccelerationSteps( accelerationMax, speedMax );
+    int32_t actualAccelerationSteps, accelerationSteps = getAccelerationSteps( accelerationMax, speedMax );
     double accelerationTime, constantSpeedTime;
 
     if( accelerationSteps * 2 > steps ) {
-        accelerationSteps = steps / 2;
+        actualAccelerationSteps = steps;
     } else {
-        accelerationSteps *= 2;
+        actualAccelerationSteps = accelerationSteps * 2;
     }
-    steps -= 2 * accelerationSteps;
-    accelerationTime = 2 * speedMax / accelerationMax / FREQUENCY;
+    steps -= actualAccelerationSteps;
+    accelerationTime = speedMax / accelerationMax * ( ( double )actualAccelerationSteps / accelerationSteps );
     constantSpeedTime = steps / speedMax;
     return accelerationTime + constantSpeedTime;
 }
 
-static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType, size_t stepOffset, size_t doubleOffset, int sign ) {
+static int sendMotorMovement( MotorMovement_t motorMovements[], int32_t commandType, size_t stepOffset, size_t doubleOffset, int sign ) {
     Command_t command;
     int i;
     int32_t steps, movement;
@@ -124,7 +137,7 @@ static int sendMotorMovement( MotorMovement_t motorMovements[], char commandType
     command.commandType = commandType;
     for( i = 0; i < NUM_MOTORS; i++ ) {
         steps = *( int32_t* )( ( char* )&motorMovements[i] + stepOffset );
-        movement = TO_ALG( *( double* )( ( char* )&motorMovements[i] + doubleOffset ) );
+        movement = *( double* )( ( char* )&motorMovements[i] + doubleOffset );
         command.command.accelerating.steps[i] = steps;
         command.command.accelerating.accelerations[i] = sign * movement;
     }
@@ -152,45 +165,84 @@ static void calculateMotorMovement( int32_t maxSteps, int32_t steps, MotorMoveme
 }
 
 static int32_t getAccelerationSteps( double acceleration, double speed ) {
-    double accelerationInterrupts = speed / acceleration;
-    double algorithmAcceleration = TO_ALG( acceleration );
-    double accelerationMovement = algorithmAcceleration * accelerationInterrupts * ( accelerationInterrupts + 1 ) / 2;
-    return fabs( accelerationMovement ) / UINT32_MAX;
+    return 0.5 * speed * speed / fabs( acceleration );
 }
 
-static double processHome( void ) {
+static int sendHomeCommand( int lookForNoHome, double accelerationDouble, double speedDouble ) {
     Command_t command;
-    int32_t accelerationSteps = getAccelerationSteps( accelerationMax, speedMax );
-    int32_t acceleration = TO_ALG( accelerationMax );
-    int32_t speed = TO_ALG( speedMax );
+    int32_t accelerationSteps = getAccelerationSteps( accelerationDouble, speedDouble );
+    int32_t acceleration = ACCELERATION_CONVERTER( accelerationDouble );
+    int32_t speed = SPEED_CONVERTER( speedDouble );
     int i;
 
-    for( i = 0; i < NUM_MOTORS; i++ ) {
+    for( i = 0; i < NUM_MOTORS - NUM_WORK_HEADS; i++ ) {
         sendNumberCommands( 3 );
 
         memset( &command, 0, sizeof( Command_t ) );
         command.commandType = Accelerating;
         command.command.accelerating.steps[i] = accelerationSteps;
         command.command.accelerating.accelerations[i] = acceleration * homeDirections[i];
-        sendCommand( &command );
+        if( !sendCommand( &command ) ) {
+            return 0;
+        }
 
         memset( &command, 0, sizeof( Command_t ) );
-        command.commandType = Home;
-        command.command.constantSpeed.steps[i] = -1;
+        command.commandType = lookForNoHome ? ReverseHome : Home;
+        command.command.constantSpeed.steps[i] = INT32_MAX;
         command.command.constantSpeed.speeds[i] = speed * homeDirections[i];
-        sendCommand( &command );
+        if( !sendCommand( &command ) ) {
+            return 0;
+        }
 
         memset( &command, 0, sizeof( Command_t ) );
         command.commandType = Accelerating;
         command.command.accelerating.steps[i] = accelerationSteps;
         command.command.accelerating.accelerations[i] = - acceleration * homeDirections[i];
-        sendCommand( &command );
+        if( !sendCommand( &command ) ) {
+            return 0;
+        }
 
-        if( i != NUM_MOTORS - 1 && !sendTotalTime( 0 ) ) {
+        if( !sendTotalTime( 0 ) ) {
             return 0;
         }
     }
 
-    return 0;
+    return 1;
 }
 
+
+static int processHome( void ) {
+    sendHomeCommand( 0, accelerationMax, speedMax );
+    sendHomeCommand( 1, -accelerationMax, -speedMax );
+    sendHomeCommand( 0, accelerationMax, 500 );
+    return 1;
+}
+
+static int processSpindleChange( int on, int forwardDirection ) {
+    Command_t command;
+
+    command.commandType = WorkHead;
+    command.command.workHead.dutyCycle = on ? spindleDutyCycle : 0;
+    command.command.workHead.forwardDirection = forwardDirection;
+    sendCommand( &command );
+
+    return sendTotalTime( 0 );
+}
+
+static int processLcdString( char *lcdString ) {
+    Command_t command;
+    size_t i;
+
+    command.commandType = LcdString;
+    for( i = 0; i < sizeof( command.command ) - 1; i++ ) {
+        if( lcdString[i] == '\0' || lcdString[i] == '\r' || lcdString[i] == '\n' ) {
+            break;
+        }
+        ( ( char* )&command.command )[i] = lcdString[i];
+    }
+    ( ( char* )&command.command )[i] = '\0';
+
+    sendCommand( &command );
+
+    return sendTotalTime( 0 );
+}

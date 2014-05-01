@@ -5,7 +5,9 @@
 
 double accelerationMax = 100;
 double speedMax = 10000;
+double spindleDutyCycle = 12;
 int homeDirections[NUM_MOTORS];
+int invert[NUM_MOTORS] = {1, 1, 1, 1};
 
 static Command_t expectedCommands[3];
 static int expectedCommandCount;
@@ -82,10 +84,10 @@ static void processMotorMovementTest( CuTest *tc ) {
 CuSuite* CuGetSuite( void ) {
     CuSuite* suite = CuSuiteNew();
 
-    SUITE_ADD_TEST( suite, getAccelerationStepsTest );
+    /*SUITE_ADD_TEST( suite, getAccelerationStepsTest );
     SUITE_ADD_TEST( suite, calculateTotalTimeTest );
     SUITE_ADD_TEST( suite, calculateMotorMovementTest );
-    SUITE_ADD_TEST( suite, processMotorMovementTest );
+    SUITE_ADD_TEST( suite, processMotorMovementTest );*/
 
     return suite;
 }
